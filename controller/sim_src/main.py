@@ -58,22 +58,20 @@ ns3Settings = {'a': 20, 'b': 30}
 mempool_key = 1234                                          # memory pool key, arbitrary integer large than 1000
 mem_size = 4096                                             # memory pool size in bytes
 memblock_key = 2333                                         # memory block key, need to keep the same in the ns-3 script
-exp = Experiment(mempool_key, mem_size, "a", "b")      # Set up the ns-3 environment
+exp = Experiment(mempool_key, mem_size, 'scratch-ai-interface-test' , '/home/soyo/wifi-ai/ns-3-dev/')      # Set up the ns-3 environment
 try:
     for i in range(10):
         exp.reset()                                             # Reset the environment
         rl = Ns3AIRL(memblock_key, Env, Act)                    # Link the shared memory block with ns-3 script
         ns3Settings['a'] = random.randint(0,10)
         ns3Settings['b'] = random.randint(0,10)
-        pro = exp.run(setting=ns3Settings, show_output=True)    # Set and run the ns-3 script (sim.cc)
+        # pro = exp.run(setting=ns3Settings, show_output=True)    # Set and run the ns-3 script (sim.cc)
         while not rl.isFinish():
             with rl as data:
                 if data == None:
                     break
-                # AI algorithms here and put the data back to the action
                 data.act.c = data.env.a+data.env.b
-                print(data.env.a)
-        # pro.wait()                                              # Wait the ns-3 to stop
+        pro.wait()                                            # Wait the ns-3 to stop
 except Exception as e:
     print('Something wrong')
     print(e)

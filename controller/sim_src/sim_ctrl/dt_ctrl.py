@@ -2,29 +2,24 @@ import os
 import subprocess
 from threading import Thread
 from ns3gym import ns3env
-from ns3_ctrl import run_ns3
+from ns3_ctrl import run_ns3, ns3_env
 
 
 class dt_env:
     def _return_dt_observation(self):
-        pass
+        raise NotImplementedError
 
     def set_replay_memory(self, rm):
-        pass
+        raise NotImplementedError
 
     def input_rn_observation(self, obs):
-        pass
+        raise NotImplementedError
 
     def input_dt_inference(self, inference):
-        pass
+        raise NotImplementedError
 
-    def run_env(self):
-        pass
 
-    def run_agent(self):
-        pass
-
-class ns3_dt_env(dt_env, Thread):
+class ns3_dt_env(dt_env, ns3_env, Thread):
     def __init__(self, id):
         Thread.__init__(self)
         self.id = id
@@ -39,6 +34,22 @@ class ns3_dt_env(dt_env, Thread):
 
         self.ns3_proc = None
 
+        self.G_ap_ap = None
+        self.G_sta_ap = None
+        self.H = None
+        self.pm = None
+
+
+    def _return_dt_observation(self):
+        raise NotImplementedError
+
+    def input_rn_obs(self, obs):
+        self.G_ap_ap = obs.G_ap_ap
+        self.G_sta_ap = obs.G_sta_ap
+
+    def input_dt_inference(self, inference):
+        raise NotImplementedError
+
     def set_replay_memory(self, rm):
         self.replay_memory = rm
 
@@ -51,19 +62,22 @@ class ns3_dt_env(dt_env, Thread):
         try:
             env.reset()
             obs, reward, done, info = env.step(self._generate_dt_configure())
+            self.replay_memory.add_obs(obs)
         except Exception:
             print("Error")
         finally:
             env.close()
-            print("ns3 gym agent",self.id,"is done",)
-        self.replay_memory.add_obs(obs)
+            print("ns3 gym dt agent",self.id,"is done")
         self.proc.wait()
 
     def _generate_dt_configure(self):
-        pass
+        raise NotImplementedError
 
     def _run_ns3_proc(self) -> subprocess.Popen:
-        pass
+        raise NotImplementedError
+
+
+
 
 
 

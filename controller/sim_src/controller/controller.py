@@ -3,6 +3,7 @@ from threading import Thread
 import numpy as np
 from typing import List
 
+from controller.sim_src.learning.model import model
 from controller.sim_src.memory.replay_memory import memory
 from controller.sim_src.sim_ctrl.dt_ctrl import ns3_dt_env
 
@@ -12,7 +13,7 @@ class inference_obs_pair:
     obs = None
 
 
-class dt_inference_controller(Thread):
+class controller(Thread):
     PORT_BASE = 5000
     D_TIME = 0.01
 
@@ -20,27 +21,25 @@ class dt_inference_controller(Thread):
         Thread.__init__(self)
         self.id = id
 
-        self.rm = None
+        self.rm:memory = None
         self.lm = None
 
         self.n_concurrent_dt = n_concurrent_dt
         self.n_total_dt = n_total_dt
         self.dt_list:List[Thread] = []
 
-        self.config_rm()
-        self.config_lm()
+        self.config()
 
-    def config_rm(self):
+        self.step_counter = 0
+
+    def config(self):
         self.rm = memory()
-
-    def config_lm(self):
-        pass
+        self.lm = model()
 
     def input_rn_obs(self, obs):
         self.obs = obs
 
     def run(self):
-
         n_dt_tot = 0
         while n_dt_tot < self.n_total_dt:
             ## check running dts
@@ -49,6 +48,7 @@ class dt_inference_controller(Thread):
                 dt = self._get_dt(n_dt_now)
                 self._add_dt(dt)
                 self.n_total_dt += 1
+            self.step()
             time.sleep(self.D_TIME)
 
         self._wait_dt_end()
@@ -79,3 +79,7 @@ class dt_inference_controller(Thread):
         dt.input_dt_inference(self.lm.get_dt_inference())
         dt.start()
         return dt
+
+    def step(self):
+        self.step_counter += 1
+        self.lm.step(self.rm.sample())

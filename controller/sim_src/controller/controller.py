@@ -3,15 +3,9 @@ from threading import Thread
 import numpy as np
 from typing import List
 
-from controller.sim_src.learning.model import model
-from controller.sim_src.memory.replay_memory import memory
-from controller.sim_src.sim_ctrl.dt_ctrl import ns3_dt_env
-
-
-class inference_obs_pair:
-    inference = None
-    obs = None
-
+from sim_src.learning.model import model
+from sim_src.memory.replay_memory import memory
+from sim_src.sim_ctrl.dt_ctrl import ns3_dt_env
 
 class controller(Thread):
     PORT_BASE = 5000

@@ -19,11 +19,11 @@ def run_ns3(path_to_ns3, program_name, port, sim_seed = 1, sim_args = {}, debug=
     ns3_string += ' --simSeed=' + str(sim_seed)
 
     for key, value in sim_args.items():
-        ns3_string += " "
+        ns3_string += " --"
         ns3_string += str(key)
         ns3_string += "="
         ns3_string += str(value)
-    ns3_string += "'"
+    ns3_string += "' --no-build"
     out_d =  None if debug else subprocess.DEVNULL
     ns3_proc = subprocess.Popen(ns3_string, shell=True, stdout=out_d, stderr=None)
     if debug:

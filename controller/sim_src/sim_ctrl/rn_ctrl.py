@@ -29,6 +29,7 @@ class ns3_rn_env(rn_env, ns3_env, Thread):
         self.port = None
         self.args = {}
         self.args['n_sta'] =self.n_sta
+        self.args['interval_in_us'] = 40000
 
         self.ns3_proc = None
         self.rn_config = None
@@ -57,13 +58,14 @@ class ns3_rn_env(rn_env, ns3_env, Thread):
         self.proc.wait()
 
     def _rn_obs(self, obs):
-        print(obs.keys())
+        # print(obs.keys())
         self.obs={}
         for k in obs.keys():
             self.obs[k] = np.array(obs[k][:])
             # print(k,self.obs[k].shape)
         self.obs['loss_ap_ap'] = np.resize(self.obs['loss_ap_ap'],(self.N_AP,self.N_AP))
         self.obs['loss_sta_ap'] = np.resize(self.obs['loss_sta_ap'],(self.N_AP,self.n_sta))
+        self.obs['loss_sta_sta'] = np.resize(self.obs['loss_sta_sta'],(self.n_sta,self.n_sta))
         # print(self.obs['loss_sta_ap'].shape)
         # print(self.obs['loss_sta_ap'])
         # print(self.obs['loss_ap_ap'].shape)

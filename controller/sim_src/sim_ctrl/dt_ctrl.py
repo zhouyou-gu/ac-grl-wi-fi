@@ -26,7 +26,7 @@ class ns3_dt_env(dt_env, ns3_env, Thread):
     def __init__(self, id, n_sta = 10):
         Thread.__init__(self)
         self.id = id
-        self.seed = id + 1000
+        self.seed = id + 100307
         self.n_sta = n_sta
 
         self.replay_memory = None
@@ -36,6 +36,7 @@ class ns3_dt_env(dt_env, ns3_env, Thread):
         self.port = None
         self.args = {}
         self.args['n_sta'] = self.n_sta
+        self.args['interval_in_us'] = 40000
 
         self.ns3_proc = None
 
@@ -50,11 +51,10 @@ class ns3_dt_env(dt_env, ns3_env, Thread):
         self.proc = None
 
     def _return_dt_observation(self, obs):
-        print(obs.keys())
         self.obs= {}
         for k in obs.keys():
             self.obs[k] = np.array(obs[k][:])
-        print(self.obs)
+        self.replay_memory.async_step((self.H,self.obs['aoi']))
 
     def input_rn_obs(self, obs):
         self.G_ap_ap = np.reshape(obs['loss_ap_ap'],(1,self.N_AP*self.N_AP))
@@ -62,15 +62,21 @@ class ns3_dt_env(dt_env, ns3_env, Thread):
 
     def input_dt_inference(self, inference):
         self.H = inference
+        # print(self.H)
         self.G_sta_sta = np.zeros((self.n_sta,self.n_sta))
         for i in range(self.n_sta):
             for j in range(i+1,self.n_sta):
-                if self.H[i,j] == 1:
-                    self.G_sta_sta[i,j] = 0.
-                    self.G_sta_sta[j,i] = 0.
-                else:
-                    self.G_sta_sta[i,j] = -200.
-                    self.G_sta_sta[j,i] = -200.
+                self.G_sta_sta[i,j] = self.H[i,j]
+                self.G_sta_sta[j,i] = self.H[i,j]
+                # if self.H[i,j] == 1:
+                #     self.G_sta_sta[i,j] = 0.
+                #     self.G_sta_sta[j,i] = 0.
+                # elif self.H[i,j] == 0:
+                #     self.G_sta_sta[i,j] = -82.
+                #     self.G_sta_sta[j,i] = -82.
+                # else:
+                #     self.G_sta_sta[i,j] = -200.
+                #     self.G_sta_sta[j,i] = -200.
 
         self.G_sta_sta = np.reshape(self.G_sta_sta, (1,self.n_sta*self.n_sta))
 
@@ -81,30 +87,29 @@ class ns3_dt_env(dt_env, ns3_env, Thread):
         self.port = port
 
     def run(self):
-        # self.proc = self._run_ns3_proc()
+        print("ns3 gym dt agent",self.id,"starts")
+        self.proc = self._run_ns3_proc()
         env = ns3env.Ns3Env(port=self.port, startSim=False)
-        # try:
-        obs = env.reset()
-        print("here",obs)
-        obs, reward, done, info = env.step(self._generate_dt_configure())
-        self._return_dt_observation(obs)
-        # except Exception as e:
-        #     print("Error", str(e))
-        # finally:
-        env.close()
+        try:
+            obs = env.reset()
+            obs, reward, done, info = env.step(self._generate_dt_configure())
+            self._return_dt_observation(obs)
+        except Exception as e:
+            print("Error", str(e))
+        finally:
+            env.close()
         print("ns3 gym dt agent",self.id,"is done")
-        # self.proc.wait()
+        self.proc.wait()
 
     def _generate_dt_configure(self):
         cfg = {}
         cfg['loss_ap_ap'] = self.G_ap_ap.flatten().tolist()
         cfg['loss_sta_ap'] = self.G_sta_ap.flatten().tolist()
         cfg['loss_sta_sta'] = self.G_sta_sta.flatten().tolist()
-        print(cfg)
         return cfg
 
     def _run_ns3_proc(self) -> subprocess.Popen:
-        return run_ns3(path_to_ns3=self.path_to_ns3, program_name=self.program_name, port=self.port, sim_seed=self.seed, sim_args=self.args, debug=True)
+        return run_ns3(path_to_ns3=self.path_to_ns3, program_name=self.program_name, port=self.port, sim_seed=self.seed, sim_args=self.args)
 
 
 

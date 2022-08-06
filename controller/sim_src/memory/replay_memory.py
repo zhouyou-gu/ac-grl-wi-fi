@@ -22,7 +22,7 @@ class memory():
         self.counter += 1
         return self.data.append(d)
 
-    def async_sample(self, batch_size):
+    def async_sample(self, batch_size= 5):
         if len(self.data) < batch_size:
             return None
         return random.sample(self.data, batch_size)
@@ -31,16 +31,20 @@ class memory():
         if not self.asynchronization:
             self.step_lock.acquire()
 
+        print("step save")
         self.async_step(d, info)
 
         if not self.asynchronization:
             self.sample_lock.release()
 
-    def sample(self, batch_size = 20):
+    def sample(self, batch_size = 5):
         if not self.asynchronization:
             self.sample_lock.acquire()
 
-        self.async_sample(batch_size)
+        print("sample")
+        sample = self.async_sample(batch_size)
 
         if not self.asynchronization:
             self.step_lock.release()
+
+        return sample

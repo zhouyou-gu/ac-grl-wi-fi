@@ -13,7 +13,7 @@ def run_ns3(path_to_ns3, program_name, port, sim_seed = 1, sim_args = {}, debug=
     assert port is not None,  "run_ns3: need a specific port for ns3 program"
 
     cwd = os.getcwd()
-    os.chdir(path_to_ns3)
+    os.chdir(os.path.expandvars(path_to_ns3))
     ns3_string = "./ns3 run '" + program_name
     ns3_string += ' --openGymPort=' + str(port)
     ns3_string += ' --simSeed=' + str(sim_seed)

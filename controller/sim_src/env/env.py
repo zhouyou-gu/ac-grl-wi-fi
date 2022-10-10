@@ -50,30 +50,30 @@ class path_loss_model():
         return (ret_d, ret_t)
 
     def gen_n_sta_info(self, n_sta):
-        ret_d = []
+        ret_loss_ap_to_sta = []
         ret_l = []
         ret_t = np.zeros((n_sta,n_sta))
         for b in range(n_sta):
-            d = []
+            loss_ap_to_sta = []
             rad_loc_a = self._get_random_loc()
             ret_l.append(rad_loc_a)
             for a in range(self.n_ap):
                 loss = self._get_loss_between_locs(self._get_ap_loc(a),rad_loc_a)
                 if self.txp_dbm - loss <= self.min_rssi_dbm:
                     loss = 200.
-                d.append(loss)
-            d = np.array(d)
-            ret_d.append(d)
+                loss_ap_to_sta.append(loss)
+            loss_ap_to_sta = np.array(loss_ap_to_sta)
+            ret_loss_ap_to_sta.append(loss_ap_to_sta)
         for a in range(n_sta):
             for b in range(a+1,n_sta):
-                t = self._get_loss_between_locs(ret_d[a],ret_d[b])
+                t = self._get_loss_between_locs(ret_l[a],ret_l[b])
                 ret_t[a,b] = t
                 ret_t[b,a] = t
 
 
-        ret_d = np.vstack(ret_d)
+        ret_loss_ap_to_sta = np.vstack(ret_loss_ap_to_sta)
         ret_l = np.vstack(ret_l)
-        return ret_d, ret_t, ret_l
+        return ret_loss_ap_to_sta, ret_t, ret_l
 
     def _get_random_loc(self):
         x = np.random.uniform(-self.range, self.range)

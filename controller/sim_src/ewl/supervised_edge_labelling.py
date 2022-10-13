@@ -14,7 +14,7 @@ np.set_printoptions(threshold=np.inf)
 np.set_printoptions(linewidth=np.inf)
 
 n_ap = 4
-n_sta = 4
+n_sta = 2
 n_out_dim = 1
 model = FNN(4)
 model_target = FNN(4)
@@ -22,7 +22,7 @@ tau = 0.01
 for target_param, param in zip(model_target.parameters(), model.parameters()):
     target_param.data.copy_(param.data)
 
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
 
 mm = path_loss_model(n_ap=4, range=1000)
@@ -35,14 +35,14 @@ Acutter = gw_cut(n_sta)
 Bcutter = gw_cut(n_sta)
 
 n_solution = 100
-net_per_batch = 10
+net_per_batch = 1
 edge_per_net = 10
 
 
 ratio = []
 ratio_by_mean = []
 figure_c = 0
-for loop in range(5000):
+for loop in range(50000):
     for target_param, param in zip(model.parameters(), model_target.parameters()):
         target_param.data.copy_(param.data)
 
@@ -52,7 +52,7 @@ for loop in range(5000):
     D_array = []
     for i in range(n_sta):
         for j in range(i+1,n_sta):
-            D[i,j] = 1. if np.linalg.norm(sta_loc[i]-sta_loc[j],ord=2) < 1200 else 10.
+            D[i,j] = 0 if np.linalg.norm(sta_loc[i]-sta_loc[j],ord=2) < 1200 else 1
             # D[i,j] = np.linalg.norm(sta_loc[i]-sta_loc[j],ord=2)
             D[j,i] = D[i,j]
             D_array.append(D[i,j])
@@ -73,6 +73,8 @@ for loop in range(5000):
 
         loss = torch.nn.functional.mse_loss(out_tensor,D_array,reduce=False)
         loss = torch.mean(loss)
+        ratio.append(loss.data.numpy())
+        ratio_by_mean.append(loss.data.numpy())
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()

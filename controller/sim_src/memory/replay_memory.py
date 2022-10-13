@@ -6,10 +6,9 @@ import numpy as np
 
 
 class memory():
-    def __init__(self, id = 0, size=100, n_sync_step = 10,asynchronization=False):
+    def __init__(self, id = 0, size=100, asynchronization=False):
         self.id = id
         self.size = size
-        self.n_sync_step = n_sync_step
         self.asynchronization = asynchronization
         self.data = deque(maxlen=self.size)
 
@@ -31,7 +30,7 @@ class memory():
         if not self.asynchronization:
             self.step_lock.acquire()
 
-        print("step save")
+        # print("step save")
         self.async_step(d, info)
 
         if not self.asynchronization:
@@ -41,7 +40,7 @@ class memory():
         if not self.asynchronization:
             self.sample_lock.acquire()
 
-        print("sample")
+        # print("sample")
         sample = self.async_sample(batch_size)
 
         if not self.asynchronization:

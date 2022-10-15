@@ -18,30 +18,44 @@ class WGNN(nn.Module):
         self.conv21 = GCNConv(hidden_channels*2, hidden_channels,add_self_loops=False,normalize=False)
         self.conv22 = GCNConv(hidden_channels*2, hidden_channels,add_self_loops=False,normalize=False)
 
-        self.read_out = nn.Linear(hidden_channels*2, out_channels)
+        self.read_out = nn.Sequential(
+                    nn.Linear(hidden_channels*2, hidden_channels*2),
+                    nn.ELU(),
+                    nn.Linear(hidden_channels*2, hidden_channels*2),
+                    nn.ELU(),
+                    nn.Linear(hidden_channels*2, out_channels),
+                )
+        self.edge_emb = nn.Sequential(
+                            nn.Linear(edge_dim, hidden_channels*2),
+                            nn.ELU(),
+                            nn.Linear(hidden_channels*2, hidden_channels*2),
+                            nn.ELU(),
+                            nn.Linear(hidden_channels*2, edge_dim),
+                        )
 
     def forward(self, x, edge_index, edge_weight):
+        edge_weight = self.edge_emb(edge_weight)
         edge_weight1 = edge_weight[:,0]
-        edge_weight2 = edge_weight[:,0]
-        print(edge_weight,"0000000000000000000")
+        edge_weight2 = edge_weight[:,1]
+        # print(edge_weight,"0000000000000000000")
 
         y1 = self.conv01.forward(x, edge_index, edge_weight1).relu()
         y2 = self.conv02.forward(x, edge_index, edge_weight2).relu()
         y = torch.cat((y1,y2),dim=1)
 
-        print(y,"1111111111111111")
+        # print(y,"1111111111111111")
 
         y1 = self.conv11.forward(y, edge_index, edge_weight1).relu()
         y2 = self.conv12.forward(y, edge_index, edge_weight2).relu()
         y = torch.cat((y1,y2),dim=1)
 
-        print(y,"2222222222222222")
+        # print(y,"2222222222222222")
 
         y1 = self.conv21.forward(y, edge_index, edge_weight1).relu()
         y2 = self.conv22.forward(y, edge_index, edge_weight2).relu()
         y = torch.cat((y1,y2),dim=1)
 
-        print(y,"3333333333333333")
+        # print(y,"3333333333333333")
 
         y = self.read_out(y)
 
@@ -71,16 +85,15 @@ class ELNN(nn.Module):
             hidden_dim = (in_dim+out_dim) * 10
         self.network = nn.Sequential(
             nn.Linear(in_dim, hidden_dim),
-            nn.ReLU(),
-            # nn.Linear(hidden_dim, hidden_dim),
-            # nn.ReLU(),
+            nn.ELU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ELU(),
             nn.Linear(hidden_dim, out_dim),
-            nn.Sigmoid()
         )
         # self.network.apply(init_weights)
 
     def forward(self, x):
-        out = self.network(x)
+        out = self.network(x).sigmoid()
         return out
 
 if __name__ == '__main__':

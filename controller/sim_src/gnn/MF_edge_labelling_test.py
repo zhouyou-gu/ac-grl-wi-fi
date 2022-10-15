@@ -74,7 +74,7 @@ Acutter = gw_cut(n_sta)
 Bcutter = gw_cut(n_sta)
 
 n_solution = 100
-net_per_batch = 20
+net_per_batch = 1
 edge_per_net = 10
 
 plot_res_1 = []
@@ -85,7 +85,7 @@ figure_c = 0
 
 rmemory = memory(size=100000,asynchronization=True)
 
-for loop in range(1000):
+for loop in range(5000):
     node_a_b_batch = torch.empty((0, 1))
     sample_edge_weight = torch.empty((0, 1))
     reward_value = torch.empty((0, 1))
@@ -95,7 +95,7 @@ for loop in range(1000):
         D = np.zeros((n_sta, n_sta))
         for i in range(n_sta):
             for j in range(i + 1, n_sta):
-                D[i, j] = np.linalg.norm(sta_loc[i] - sta_loc[j], ord=2)/1200
+                D[i, j] = np.linalg.norm(sta_loc[i] - sta_loc[j], ord=2)/800
                 D[j, i] = D[i, j]
 
         W_true = np.zeros((n_sta, n_sta))
@@ -123,15 +123,13 @@ for loop in range(1000):
     Dis = to_tensor(Dis)
     lw_ts = el_model.forward(Dis)
     lw_np = to_numpy(lw_ts)
-    rand_W = np.random.uniform(low=0.,high=1.,size=lw_np.shape)
+    # rand_W = np.random.uniform(low=0.,high=1.,size=lw_np.shape)
     # print(rand_W,lw_np.shape)
-    if p_true(0.5):
-        W_true = np.vstack([sym_mat_to_vec(dd[1],n_sta) for dd in data])
-        W_elnn = vec_to_sym_mat(W_true,n_sta,net_per_batch)
-    else:
-        # lw_np = lw_np-np.min(lw_np)
-        # lw_np = lw_np/np.max(lw_np)
-        W_elnn = vec_to_sym_mat(lw_np,n_sta,net_per_batch)
+    # if p_true(0.1):
+    #     W_true = np.vstack([sym_mat_to_vec(dd[1],n_sta) for dd in data])
+    #     W_elnn = vec_to_sym_mat(W_true,n_sta,net_per_batch)
+    # else:
+    W_elnn = vec_to_sym_mat(lw_np,n_sta,net_per_batch)
 
     # print(W_elnn)
 
@@ -139,7 +137,11 @@ for loop in range(1000):
     R_elnn_per_sta = np.zeros((net_per_batch,n_sta))
     for n in range(net_per_batch):
         W_true = data[n][1]
-        Acutter.set_edge_weights(W_elnn[n])
+        tmp = sym_mat_to_vec(W_elnn[n],n_sta)
+        tmp = tmp-np.min(tmp)
+        WW = tmp/np.max(tmp)
+        WW = vec_to_sym_mat(WW,n_sta,1)[0]
+        Acutter.set_edge_weights(WW)
         Acutter.solve()
         s, c = Acutter.get_m_solutions(n_solution)
         for ss in s:
@@ -152,7 +154,7 @@ for loop in range(1000):
 
         R_elnn[n] /= n_solution
         plot_res_1.append(R_elnn[n]-data[n][2])
-        # print(R_elnn[n]-data[n][2])
+        print(R_elnn[n],data[n][2])
         R_elnn_per_sta[n,:] /= n_solution
 
     # print(R_elnn,R_elnn_per_sta,np.sum(R_elnn_per_sta,axis=1,keepdims=True), [dd[2] for dd in data])
@@ -164,14 +166,14 @@ for loop in range(1000):
 
     rc_data_list = []
     for n in range(net_per_batch):
-        lw_vec = to_tensor(sym_mat_to_vec(W_elnn[n],n_sta))
+        # lw_vec = to_tensor(sym_mat_to_vec(W_elnn[n],n_sta))
         lw_mat_ts = to_tensor(W_elnn[n])[e_index[0,:],e_index[1,:]]
-        lw_mat_ts = lw_mat_ts-torch.min(lw_mat_ts)
-        lw_mat_ts = lw_mat_ts/torch.max(lw_mat_ts)
+        # lw_mat_ts = lw_mat_ts-torch.min(lw_mat_ts)
+        # lw_mat_ts = lw_mat_ts/torch.max(lw_mat_ts)
         D_ts = to_tensor(data[n][0][e_index[0,:],e_index[1,:]])
         # print(lw_mat_ts,D_ts)
         e_attr = torch.vstack((lw_mat_ts,D_ts)).transpose(0,1)
-        print("e_attr",e_attr)
+        # print("e_attr",e_attr)
 
         # exit(0)
         d = Data(x=torch.ones((n_sta,1)),edge_attr=e_attr,edge_index=e_index)
@@ -198,20 +200,29 @@ for loop in range(1000):
     el_ts_idx = to_tensor(el_ts_idx,dtype=LONG_TYPE)
     # print(el_ts_idx.dtype)
     # print(lw_ts[el_ts_idx,0])
-    lw_ts_tmp = el_model.forward(Dis)
-    # lw_ts = lw_ts-torch.min(lw_ts_tmp)
+    lw_ts = el_model.forward(Dis)
+    # lw_ts = lw_ts-torch.min(lw_ts)
     # lw_ts = lw_ts/torch.max(lw_ts)
-    e_attr = torch.hstack((lw_ts_tmp[el_ts_idx[:,0]],batch.edge_attr[:,1].view(-1, 1)))
+    e_attr = torch.hstack((lw_ts[el_ts_idx[:,0]],batch.edge_attr[:,1].view(-1, 1)))
     y = rc_model.forward(batch.x,batch.edge_index,e_attr)
     l = -torch.mean(y)
+
+    lw_ts_from_nn = to_numpy(lw_ts)
+    lw_ts_from_nn = lw_ts_from_nn-np.min(lw_ts_from_nn)
+    lw_ts_from_nn = lw_ts_from_nn/np.max(lw_ts_from_nn)
+    diff_l = torch.nn.functional.mse_loss(lw_ts,to_tensor(lw_ts_from_nn))
+
+    l += diff_l
+
+    plot_res_3.append(to_numpy(l))
 
     el_optimizer.zero_grad()
     l.backward()
     for param in el_model.parameters():
-        print("++++++++",param.grad)
+        # print("++++++++",param.grad)
         pass
     el_optimizer.step()
-    print(np.hstack((Dis, to_numpy(lw_ts), to_numpy(lw_ts_tmp))))
+    print(np.hstack((Dis, lw_ts_from_nn, to_numpy(lw_ts))))
     print(loop)
 
     # for e in data.edge_index.transpose():
@@ -228,8 +239,8 @@ plt.plot(np.array(plot_res_1), color='r', linewidth=1)
 plt.figure(figure_c)
 figure_c += 1
 plt.plot(np.array(plot_res_2), color='b', linewidth=1)
-# plt.figure(figure_c)
-# figure_c += 1
-# plt.plot(np.array(ratio) - np.array(ratio_by_mean), color='g', linewidth=1)
+plt.figure(figure_c)
+figure_c += 1
+plt.plot(np.array(plot_res_3), color='g', linewidth=1)
 plt.show()
 # plt.plot(res)

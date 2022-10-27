@@ -15,7 +15,7 @@ class gw_cut():
         self.obj = None
         self.constraints = None
 
-    def get_m_solutions(self, num_trials):
+    def get_m_solutions(self, num_trials=1):
         u, s, v = np.linalg.svd(self.X.value)
         U = u * np.sqrt(s)
 
@@ -61,6 +61,33 @@ class gw_cut():
             for y in cut_b:
                 ret += H[x,y]
         return ret
+
+
+def cut_into_2_k(W,n_node,k):
+    assert W.shape == (n_node,n_node)
+    node_idx = [i for i in range(n_node)]
+    return cut_into_2_k_recur(W,n_node,0,k,node_idx)
+
+
+def cut_into_2_k_recur(W,n_node,lvl,total_lvl,node_idx):
+    ret = np.zeros(n_node)
+    if lvl == total_lvl:
+        return
+    if not node_idx:
+        return
+    cutter = gw_cut(len(node_idx))
+    cutter.set_edge_weights(W[node_idx,node_idx])
+    s, c = cutter.get_m_solutions(1)
+    a, b = gw_cut.split(s[0])
+    a_ind = node_idx[a]
+    ret[a_ind] += 2**(total_lvl-lvl)
+    ret += cut_into_2_k_recur(W,n_node,lvl+1,total_lvl,a_ind)
+
+    b_ind = node_idx[b]
+    ret += cut_into_2_k_recur(W,n_node,lvl+1,total_lvl,b_ind)
+    return ret
+
+
 
 
 

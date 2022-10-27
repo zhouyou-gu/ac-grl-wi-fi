@@ -4,7 +4,7 @@ from threading import Thread
 import numpy as np
 from ns3gym import ns3env
 
-from sim_src.sim_ctrl.ns3_ctrl import run_ns3, ns3_env
+from sim_src.ns3_ctrl.ns3_ctrl import run_ns3, ns3_env
 
 class wifi_net_config:
     def __init__(self):

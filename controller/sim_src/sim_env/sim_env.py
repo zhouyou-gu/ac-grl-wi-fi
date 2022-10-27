@@ -1,7 +1,7 @@
 import numpy as np
 
 from sim_src.cut.gw_cut import gw_cut, cut_into_2_k
-from sim_src.sim_ctrl.wifi_net_ctrl import sim_wifi_net, wifi_net_config
+from sim_src.ns3_ctrl.wifi_net_ctrl import sim_wifi_net, wifi_net_config
 from sim_src.sim_env.path_loss import path_loss
 from sim_src.util import to_tensor, to_numpy
 

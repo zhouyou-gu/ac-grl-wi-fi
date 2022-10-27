@@ -1,4 +1,4 @@
-from sim_src.sim_ctrl.wifi_net_ctrl import wifi_net_instance
+from sim_src.ns3_ctrl.wifi_net_ctrl import wifi_net_instance
 
 
 class train_algorithm:

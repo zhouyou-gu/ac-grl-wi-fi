@@ -53,9 +53,9 @@ class path_loss():
     def _config_ap_locs(self):
         grid_ap = self.range/2.
         self.ap_locs.append((grid_ap, grid_ap))
+        self.ap_locs.append((-grid_ap, grid_ap))
         self.ap_locs.append((grid_ap, -grid_ap))
         self.ap_locs.append((-grid_ap, -grid_ap))
-        self.ap_locs.append((-grid_ap, grid_ap))
         assert len(self.ap_locs) == self.n_ap
 
     def _config_sta_locs(self):

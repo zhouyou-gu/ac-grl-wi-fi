@@ -19,7 +19,7 @@ class wifi_net_config:
         self.n_sta = 0
 
         self.app_packet_interval = 40000
-        self.app_packet_size = 100
+        self.app_packet_size = 20
 
         self.loss_ap_ap = None
         self.loss_sta_ap = None
@@ -40,9 +40,6 @@ class wifi_net_instance:
 
 class sim_wifi_net(wifi_net_instance, ns3_env, Thread):
     DEBUG = False
-    TWT_START_TIME = 10000000
-    TWT_ASLOT_TIME = 10000
-
     def __init__(self, id):
         Thread.__init__(self)
         self.id = id
@@ -67,7 +64,7 @@ class sim_wifi_net(wifi_net_instance, ns3_env, Thread):
             obs, reward, done, info = this_env.step(self._gen_ns3gym_act())
             self._ret_ns3gym_obs(obs)
         except Exception as e:
-            print("Error", str(e))
+            print("sim_wifi_net run Error", str(e))
         finally:
             this_env.close()
         print("ns3 gym dt agent",self.id,"is done")
@@ -82,11 +79,14 @@ class sim_wifi_net(wifi_net_instance, ns3_env, Thread):
         act['twtoffset'] = self.cfg.twtoffset.flatten().tolist()
         act['twtduration'] = self.cfg.twtduration.flatten().tolist()
         act['twtperiodicity'] = self.cfg.twtperiodicity.flatten().tolist()
-        return
+        # print(act)
+        return act
 
     def _ret_ns3gym_obs(self, obs):
         assert self.ret is None, "this ns3 instance already has return value"
-        self.ret = obs
+        self.ret= {}
+        for k in obs.keys():
+            self.ret[k] = np.array(obs[k][:])
 
     def _get_ns3_args(self):
         args = {}

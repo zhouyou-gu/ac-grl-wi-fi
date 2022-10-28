@@ -1,6 +1,9 @@
+import random
+
 import numpy as np
 
-from sim_src.cut.gw_cut import gw_cut, cut_into_2_k
+from sim_src.edge_label.gw_cut import cut_into_2_k
+from sim_src.ns3_ctrl.ns3_ctrl import build_ns3
 from sim_src.ns3_ctrl.wifi_net_ctrl import sim_wifi_net, wifi_net_config
 from sim_src.sim_env.path_loss import path_loss
 from sim_src.util import to_tensor, to_numpy
@@ -21,9 +24,14 @@ class sim_env_to_controller_interface:
     def set_actor(self, model):
         pass
 
-
 class sim_env(sim_env_to_controller_interface):
-    def __init__(self, id=0, ns3_sim_time_s=10, app_packet_interval=40000, mac_packet_size=100, twt_log2_n_slot = 1):
+    PROG_PATH = ''
+    PROG_NAME = ''
+
+    TWT_START_TIME = 10000000
+    TWT_ASLOT_TIME = 10000
+
+    def __init__(self, id=0, ns3_sim_time_s=1., app_packet_interval=100000, mac_packet_size=100, twt_log2_n_slot = 1):
         self.id = id
         self.ns3_sim_time_s = ns3_sim_time_s
         self.app_packet_interval = app_packet_interval
@@ -46,9 +54,11 @@ class sim_env(sim_env_to_controller_interface):
         self.ns3_env = sim_wifi_net(self.id)
 
         cfg = wifi_net_config()
+        cfg.PROG_PATH = self.PROG_PATH
+        cfg.PROG_NAME = self.PROG_NAME
         cfg.PROG_PORT = (self.id % 1000) + 5000
         cfg.PROG_SEED = (self.id % 1000) + 5000
-        cfg.PROG_TIME = self.ns3_sim_time
+        cfg.PROG_TIME = self.ns3_sim_time_s
 
         cfg.id = self.id
         cfg.n_ap = self.pl_model.n_ap
@@ -61,9 +71,10 @@ class sim_env(sim_env_to_controller_interface):
         cfg.loss_sta_ap = self.pl_model.get_loss_sta_ap()
         cfg.loss_sta_sta = self.pl_model.get_loss_sta_sta()
 
-        state = path_loss.convert_loss_sta_ap(cfg.loss_sta_ap)
+        state = self.pl_model.convert_loss_sta_ap(cfg.loss_sta_ap)
         state = self.formate_np_state(state)
         action = self.gen_action(state)
+        # print(action)
         twt_cfg = self.formate_np_action(action)
 
         cfg.twtstarttime = twt_cfg['twtstarttime']
@@ -85,8 +96,14 @@ class sim_env(sim_env_to_controller_interface):
 
         assert self.sample['state'].shape == (self.pl_model.n_sta, self.pl_model.n_ap)
         assert self.sample['target'].shape == (self.pl_model.n_sta, self.pl_model.n_sta)
-        assert self.sample['action'].shape == (self.pl_model.n_sta, 1)
+        assert self.sample['action'].shape == (self.pl_model.n_sta, self.pl_model.n_sta)
         assert self.sample['reward'].shape == (self.pl_model.n_sta, 1)
+
+        if not np.isnan(np.sum(self.sample['reward'])):
+            if self.memory and not np.isnan(np.sum(self.sample['reward'])):
+                self.memory.step(self.sample.copy())
+        else:
+            print("nan in reward drop sample")
 
     def set_memory(self, memory):
         self.memory = memory
@@ -97,11 +114,10 @@ class sim_env(sim_env_to_controller_interface):
     def gen_action(self, state):
         ## exploration?
         to_tensor(state)
-        action = self.actor.get_action(state)
-        to_numpy(action)
-        return action
+        action = self.actor.gen_action(state)
+        return to_numpy(action)
 
-    def formate_np_state(self, state) -> np.arry:
+    def formate_np_state(self, state) -> np.array:
         ## normalization etc
         state /= (self.pl_model.min_rssi_dbm)
         state -= 1.
@@ -110,18 +126,40 @@ class sim_env(sim_env_to_controller_interface):
     def formate_np_action(self, action) -> dict:
         ## action to twt list
         sta_twt_slot_id = cut_into_2_k(action,self.pl_model.n_sta,self.twt_log2_n_slot)
+        # print(sta_twt_slot_id)
 
         twt_cfg = {}
-        twt_cfg['twtstarttime'] = np.ones(self.pl_model.n_sta)*self.ns3_env.TWT_START_TIME
-        twt_cfg['twtoffset'] = sta_twt_slot_id*self.ns3_env.TWT_START_TIME
-        twt_cfg['twtduration'] = np.ones(self.pl_model.n_sta)*self.ns3_env.TWT_ASLOT_TIME
-        twt_cfg['twtperiodicity'] = np.ones(self.pl_model.n_sta)*self.ns3_env.TWT_ASLOT_TIME * (2**self.twt_log2_n_slot)
+        twt_cfg['twtstarttime'] = np.ones(self.pl_model.n_sta)*self.TWT_START_TIME
+        twt_cfg['twtoffset'] = sta_twt_slot_id*self.TWT_ASLOT_TIME
+        twt_cfg['twtduration'] = np.ones(self.pl_model.n_sta)*self.TWT_ASLOT_TIME
+        twt_cfg['twtperiodicity'] = np.ones(self.pl_model.n_sta)*self.TWT_ASLOT_TIME * (2**self.twt_log2_n_slot)
 
         return twt_cfg
 
     def formate_dict_reward(self, reward) -> np.array:
-        ret = reward['thr']/(self.app_packet_interval/1e6)/self.ns3_sim_time_s
-        return ret
+        print(reward,"+++++++++++++++++")
+        ret = reward['aoi']/(self.app_packet_interval/1e6)/self.ns3_sim_time_s
+        return ret[:,np.newaxis]
 
     def get_n_sta(self):
-        return 20.
+        return 10
+
+if __name__ == '__main__':
+    build_ns3("/home/soyo/wifi-ai/ns-3-dev")
+    # exit(0)
+    e = sim_env(id=random.randint(40,60))
+    e.PROG_PATH = "/home/soyo/wifi-ai/ns-3-dev"
+    e.PROG_NAME = "wifi-ai/env"
+    class test_actor:
+        def __init__(self, n_sta):
+            self.n_sta = n_sta
+
+        def gen_action(self,state):
+            ret = np.random.uniform(0,1,(self.n_sta,self.n_sta))
+            np.fill_diagonal(ret,0)
+            return to_tensor(ret)
+
+    a = test_actor(e.get_n_sta())
+    e.set_actor(a)
+    e.init_env()
+    e.step()

@@ -72,18 +72,19 @@ def cut_into_2_k(W,n_node,k):
 def cut_into_2_k_recur(W,n_node,lvl,total_lvl,node_idx):
     ret = np.zeros(n_node)
     if lvl == total_lvl:
-        return
+        return ret
     if not node_idx:
-        return
+        return ret
     cutter = gw_cut(len(node_idx))
-    cutter.set_edge_weights(W[node_idx,node_idx])
+    cutter.set_edge_weights(W[np.ix_(node_idx,node_idx)])
+    cutter.solve()
     s, c = cutter.get_m_solutions(1)
     a, b = gw_cut.split(s[0])
-    a_ind = node_idx[a]
-    ret[a_ind] += 2**(total_lvl-lvl)
+    a_ind = [node_idx[i] for i in a]
+    ret[a_ind] += 2**(total_lvl-lvl-1)
     ret += cut_into_2_k_recur(W,n_node,lvl+1,total_lvl,a_ind)
 
-    b_ind = node_idx[b]
+    b_ind = [node_idx[i] for i in b]
     ret += cut_into_2_k_recur(W,n_node,lvl+1,total_lvl,b_ind)
     return ret
 

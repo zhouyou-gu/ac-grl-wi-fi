@@ -47,6 +47,8 @@ class sim_wifi_net(wifi_net_instance, ns3_env, Thread):
         self.id = id
 
         self.cfg:wifi_net_config = wifi_net_config()
+
+        self.agnt = None
         self.proc = None
 
         self.ret = None
@@ -59,16 +61,18 @@ class sim_wifi_net(wifi_net_instance, ns3_env, Thread):
 
     def run(self):
         self._print("ns3 gym dt agent",self.id,"starts")
+        self.agnt = ns3env.Ns3Env(port=self.cfg.PROG_PORT, startSim=False)
+        self._print("ns3 sim",self.id,"starts")
         self.proc = self._run_ns3_proc()
-        this_env = ns3env.Ns3Env(port=self.cfg.PROG_PORT, startSim=False)
+        self.agnt.init()
         try:
-            obs = this_env.reset()
-            obs, reward, done, info = this_env.step(self._gen_ns3gym_act())
+            obs = self.agnt.reset()
+            obs, reward, done, info = self.agnt.step(self._gen_ns3gym_act())
             self._ret_ns3gym_obs(obs)
         except Exception as e:
             print("sim_wifi_net run Error", str(e))
         finally:
-            this_env.close()
+            self.agnt.close()
         self._print("ns3 gym dt agent",self.id,"is done")
         self.proc.wait()
 
@@ -102,6 +106,8 @@ class sim_wifi_net(wifi_net_instance, ns3_env, Thread):
         path = self.cfg.PROG_PATH
         name = self.cfg.PROG_NAME
         port = self.cfg.PROG_PORT
+        if port == 0:
+            port = self.agnt.get_port()
         seed = self.cfg.PROG_SEED
         time = self.cfg.PROG_TIME
         args = self._get_ns3_args()

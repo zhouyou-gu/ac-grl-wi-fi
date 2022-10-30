@@ -1,4 +1,5 @@
 from datetime import datetime
+import pprint
 from time import time
 
 
@@ -51,9 +52,9 @@ def get_current_time_str():
     return datetime.now().strftime("%Y-%B-%d-%H-%M-%S")
 
 def counted(f):
-    def wrapped(self, *args):
-        self.n_step += 1
-        return f(self, *args)
+    def wrapped(self, *args, **kwargs):
+        self.N_STEP += 1
+        return f(self, *args, **kwargs)
 
     return wrapped
 
@@ -66,3 +67,36 @@ def timed(f):
         return result
 
     return wrapped
+
+class StatusObject:
+    N_STEP = 0
+    DEBUG_STEP = 1000
+    DEBUG = False
+
+    MOVING_AVERAGE_TIME_WINDOW = 100
+    MOVING_AVERAGE_DICT = {}
+    def status(self):
+        if self.DEBUG:
+            pprint.pprint(vars(self))
+
+    def _print(self, *args, **kwargs):
+        if self.DEBUG and (
+                self.N_STEP % self.DEBUG_STEP == 0 or self.N_STEP % self.DEBUG_STEP == 1 or self.N_STEP % self.DEBUG_STEP == 2):
+            print(("%6d\t" % self.N_STEP) + " ".join(map(str, args)), **kwargs)
+    def _printa(self, *args, **kwargs):
+        if self.DEBUG:
+            print(("%6d\t" % self.N_STEP) + " ".join(map(str, args)), **kwargs)
+    def _moving_average(self, key, new_value):
+        if key in self.MOVING_AVERAGE_DICT:
+            self.MOVING_AVERAGE_DICT[key] = self.MOVING_AVERAGE_DICT[key] * (1.-1./self.MOVING_AVERAGE_TIME_WINDOW) + 1./self.MOVING_AVERAGE_TIME_WINDOW * new_value
+            return self.MOVING_AVERAGE_DICT[key]
+        else:
+            return 0.
+
+if __name__ == '__main__':
+    a = StatusObject()
+    a.DEBUG = True
+    b = StatusObject()
+    c = StatusObject()
+    c.DEBUG = 10
+    print(a.DEBUG,b.DEBUG,c.DEBUG)

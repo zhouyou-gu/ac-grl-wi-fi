@@ -6,6 +6,7 @@ class path_loss():
     C = 299792458.0
     PI = 3.14159265358979323846
     HIDDEN_LOSS = 200.
+    NOISE_FLOOR_1MHZ_DBM = -93.9763
     def __init__(self, n_ap = 4, n_sta = 10,range = 1000., fre_Hz = 1e9, txp_dbm = 0., min_rssi_dbm = -95, shadowing_sigma = 0):
         self.memory = None
         self.model = None
@@ -80,17 +81,26 @@ class path_loss():
         loss = np.max((loss,0))
         return loss
 
-    def convert_loss_sta_ap(self,loss):
+    def convert_loss_sta_ap_threshold(self, loss):
         ret = np.copy(loss)
         ret[ret>(self.txp_dbm-self.min_rssi_dbm)] = self.HIDDEN_LOSS
         return ret
 
+    def convert_loss_sta_sta_binary(self, loss):
+        ret = np.copy(loss)
+        ret[np.logical_or(ret>(self.txp_dbm-self.min_rssi_dbm), self.txp_dbm-ret-self.NOISE_FLOOR_1MHZ_DBM<0.)] = 0.
+        ret[ret>0.] = 1.
+        return ret
 
 if __name__ == '__main__':
     pl = path_loss()
-    x = pl.get_loss_sta_ap()
+    # x = pl.get_loss_sta_ap()
+    # # print(x)
+    # print(pl.convert_loss_sta_ap_threshold(x))
     # print(x)
-    print(pl.convert_loss_sta_ap(x))
-    print(x)
-    print(pl.convert_loss_sta_ap(pl.get_loss_ap_ap()))
-    print(pl.convert_loss_sta_ap(pl.get_loss_sta_sta()))
+    # print(pl.convert_loss_sta_ap_threshold(pl.get_loss_ap_ap()))
+    # print(pl.convert_loss_sta_ap_threshold(pl.get_loss_sta_sta()))
+
+    y = pl.get_loss_sta_sta()
+    print(y)
+    print(pl.convert_loss_sta_sta_binary(y))

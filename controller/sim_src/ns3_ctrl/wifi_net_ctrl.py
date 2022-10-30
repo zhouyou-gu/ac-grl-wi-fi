@@ -5,6 +5,8 @@ import numpy as np
 from ns3gym import ns3env
 
 from sim_src.ns3_ctrl.ns3_ctrl import run_ns3, ns3_env
+from sim_src.util import StatusObject
+
 
 class wifi_net_config:
     def __init__(self):
@@ -31,7 +33,7 @@ class wifi_net_config:
         self.twtperiodicity = None
 
 
-class wifi_net_instance:
+class wifi_net_instance(StatusObject):
     def set_config(self, config):
         pass
 
@@ -56,7 +58,7 @@ class sim_wifi_net(wifi_net_instance, ns3_env, Thread):
         return self.ret
 
     def run(self):
-        print("ns3 gym dt agent",self.id,"starts")
+        self._print("ns3 gym dt agent",self.id,"starts")
         self.proc = self._run_ns3_proc()
         this_env = ns3env.Ns3Env(port=self.cfg.PROG_PORT, startSim=False)
         try:
@@ -67,7 +69,7 @@ class sim_wifi_net(wifi_net_instance, ns3_env, Thread):
             print("sim_wifi_net run Error", str(e))
         finally:
             this_env.close()
-        print("ns3 gym dt agent",self.id,"is done")
+        self._print("ns3 gym dt agent",self.id,"is done")
         self.proc.wait()
 
     def _gen_ns3gym_act(self):

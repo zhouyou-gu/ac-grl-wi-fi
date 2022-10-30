@@ -1,17 +1,13 @@
-import math
-
 import networkx as nx
-import numpy as np
 import matplotlib.pyplot as plt
 from torch_geometric.utils import from_networkx
 from torch_geometric.data import Data, Batch
 
-from sim_src.env.env import path_loss_model, p_true
-from sim_src.cut.gw_cut import gw_cut
-from sim_src.gnn.model import ELNN, WGNN, WGNN_GAT
+from sim_src.env.env import path_loss_model
+from sim_src.edge_label.gw_cut import gw_cut
+from sim_src.gnn.model import ELNN, WGNN
 from sim_src.memory.replay_memory import memory
 
-import torch
 import torch.optim as optim
 
 from sim_src.util import *

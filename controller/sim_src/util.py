@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 import pprint
 from time import time
@@ -68,6 +69,22 @@ def timed(f):
 
     return wrapped
 
+LOGGED_NP_DATA_HEADER_SIZE = 3
+
+
+class ParameterConfig(dict):
+    CONFIG_NAME = "sim_config"
+    def save(self, path: str, postfix: str):
+        try:
+            os.mkdir(path)
+        except:
+            pass
+        data_name = "%s.%s.txt" % (self.CONFIG_NAME,postfix)
+        data_path = os.path.join(path,data_name)
+        with open(data_path, 'w') as f:
+            for key, value in self.items():
+                f.write('%15s, %s\n' % (key, value))
+
 class StatusObject:
     N_STEP = 0
     DEBUG_STEP = 1000
@@ -75,6 +92,34 @@ class StatusObject:
 
     MOVING_AVERAGE_TIME_WINDOW = 100
     MOVING_AVERAGE_DICT = {}
+    LOGGED_NP_DATA = {}
+
+    def save(self, path: str, postfix: str):
+        pass
+    def _add_np_log_field(self, key:str, length:int):
+        self.LOGGED_NP_DATA[key] = np.zeros((0,length+LOGGED_NP_DATA_HEADER_SIZE))
+
+    def save_np(self, path: str, postfix: str):
+        try:
+            os.mkdir(path)
+        except:
+            pass
+        for key in self.LOGGED_NP_DATA:
+            data_name = "%s.%s.%s.txt" % (self.__class__.__name__,key,postfix)
+            data_path = os.path.join(path,data_name)
+            np.savetxt(data_path, self.LOGGED_NP_DATA[key] , delimiter=',')
+
+    def add_np_log(self, key, float_row_data, g_step=0):
+        float_row_data = np.squeeze(float_row_data)
+        assert isinstance(float_row_data, np.ndarray)
+        assert float_row_data.ndim == 1
+        if not (key in self.LOGGED_NP_DATA):
+            self._add_np_log_field(key,float_row_data.size)
+        assert float_row_data.size + LOGGED_NP_DATA_HEADER_SIZE == self.LOGGED_NP_DATA[key].shape[1]
+        s_t = np.array([g_step,self.N_STEP,time()])
+        data = np.hstack((s_t,float_row_data))
+        self.LOGGED_NP_DATA[key] = np.vstack((self.LOGGED_NP_DATA[key],data))
+
     def status(self):
         if self.DEBUG:
             pprint.pprint(vars(self))
@@ -85,7 +130,7 @@ class StatusObject:
             print(("%6d\t" % self.N_STEP) + " ".join(map(str, args)), **kwargs)
     def _printa(self, *args, **kwargs):
         if self.DEBUG:
-            print(("%6d\t" % self.N_STEP) + " ".join(map(str, args)), **kwargs)
+            print(("%6d\t" % self.N_STEP) + ("%10s\t" % self.__class__.__name__) + " ".join(map(str, args)), **kwargs)
     def _moving_average(self, key, new_value):
         if key in self.MOVING_AVERAGE_DICT:
             self.MOVING_AVERAGE_DICT[key] = self.MOVING_AVERAGE_DICT[key] * (1.-1./self.MOVING_AVERAGE_TIME_WINDOW) + 1./self.MOVING_AVERAGE_TIME_WINDOW * new_value
@@ -100,3 +145,9 @@ if __name__ == '__main__':
     c = StatusObject()
     c.DEBUG = 10
     print(a.DEBUG,b.DEBUG,c.DEBUG)
+    cfg = ParameterConfig()
+    cfg["x"] = 5
+    cfg["x"] = 9
+    OUT_FOLDER = os.path.splitext(os.path.basename(__file__))[0] + "-" + get_current_time_str()
+    OUT_FOLDER = os.path.join(os.path.dirname(os.path.realpath(__file__)), OUT_FOLDER)
+    cfg.save(OUT_FOLDER,"hello")

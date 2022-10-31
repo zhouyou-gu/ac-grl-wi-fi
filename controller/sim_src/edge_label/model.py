@@ -8,7 +8,6 @@ from torch_geometric.data import Data
 from torch_geometric.utils import from_networkx, to_dense_adj
 
 from sim_src.edge_label.nn import INFNN, ELNN, WGNN
-from sim_src.tsb import GLOBAL_LOGGER
 from sim_src.util import USE_CUDA, hard_update_inplace, counted, StatusObject, soft_update_inplace, to_numpy, to_tensor
 
 
@@ -25,7 +24,8 @@ class gnn_edge_label(learning_model):
     CRI_LR = 0.001
     TAU = 0.01
     EQUALIZATION_FACTOR = 0.1
-    def __init__(self, id, edge_dim=3, node_dim=4):
+    FAIRNESS_ALPHA = 10
+    def __init__(self, id, edge_dim=4, node_dim=4):
         self.id = id
         self.edge_dim = edge_dim # loss sta-y to ap-x, loss sta-x to ap-y, Pr sta-x sta-y contending
         self.node_dim = node_dim # loss sta-x to ap-1..., loss sta-y to ap-1...
@@ -44,14 +44,6 @@ class gnn_edge_label(learning_model):
         self.critic_target = None
 
         self.init_model()
-
-        GLOBAL_LOGGER.get_tb_logger().add_text_of_object("infer_arch", self.infer)
-        GLOBAL_LOGGER.get_tb_logger().add_text_of_object("actor_arch", self.actor)
-        GLOBAL_LOGGER.get_tb_logger().add_text_of_object("critic_arch", self.critic)
-
-        GLOBAL_LOGGER.get_tb_logger().add_text_of_object("infer_target_arch", self.infer_target)
-        GLOBAL_LOGGER.get_tb_logger().add_text_of_object("actor_target_arch", self.actor_target)
-        GLOBAL_LOGGER.get_tb_logger().add_text_of_object("critic_target_arch", self.critic_target)
 
 
         if USE_CUDA:
@@ -78,8 +70,8 @@ class gnn_edge_label(learning_model):
         hard_update_inplace(self.actor_target, self.actor)
 
     def setup_critic(self):
-        self.critic = WGNN(in_node_channels=1.,hidden_node_channels=5,out_node_channels=1,in_edge_channels=self.edge_dim+1,hidden_edge_channels=2)
-        self.critic_target = WGNN(in_node_channels=1.,hidden_node_channels=5,out_node_channels=1,in_edge_channels=self.edge_dim+1,hidden_edge_channels=2)
+        self.critic = WGNN(in_node_channels=1,hidden_node_channels=5,out_node_channels=1,in_edge_channels=self.edge_dim+1,hidden_edge_channels=5)
+        self.critic_target = WGNN(in_node_channels=1,hidden_node_channels=5,out_node_channels=1,in_edge_channels=self.edge_dim+1,hidden_edge_channels=5)
         self.critic_optim = optim.Adam(self.critic.parameters(), lr=self.CRI_LR)
         hard_update_inplace(self.critic_target, self.critic)
 
@@ -118,14 +110,18 @@ class gnn_edge_label(learning_model):
         soft_update_inplace(self.critic_target, self.critic, self.TAU)
 
     def save(self, path: str, postfix: str):
-        torch.save(self.infer, os.path.join(path,"infer_" + postfix + ".pt"))
-        torch.save(self.infer_target, os.path.join(path,"infer_target_" + postfix + ".pt"))
+        try:
+            os.mkdir(path)
+        except:
+            pass
+        torch.save(self.infer, os.path.join(path,"infer." + postfix + ".pt"))
+        torch.save(self.infer_target, os.path.join(path,"infer_target." + postfix + ".pt"))
 
-        torch.save(self.actor, os.path.join(path,"actor_" + postfix + ".pt"))
-        torch.save(self.actor_target, os.path.join(path,"actor_target_" + postfix + ".pt"))
+        torch.save(self.actor, os.path.join(path,"actor." + postfix + ".pt"))
+        torch.save(self.actor_target, os.path.join(path,"actor_target." + postfix + ".pt"))
 
-        torch.save(self.critic, os.path.join(path,"critic_" + postfix + ".pt"))
-        torch.save(self.critic_target, os.path.join(path,"critic_target_" + postfix + ".pt"))
+        torch.save(self.critic, os.path.join(path,"critic." + postfix + ".pt"))
+        torch.save(self.critic_target, os.path.join(path,"critic_target." + postfix + ".pt"))
 
     def gen_action(self, state_np):
         n_node = state_np.shape[0]
@@ -141,18 +137,22 @@ class gnn_edge_label(learning_model):
             state = to_tensor(state_np,requires_grad=False)
             min_path_loss, min_path_loss_idx = torch.min(state,dim=1,keepdim=True)
 
-            state_A_to_B = state[e_index[0,:],min_path_loss_idx[e_index[1,:],0]]
-            state_B_to_A = state[e_index[1,:],min_path_loss_idx[e_index[0,:],0]]
-
-            interference = torch.vstack((state_A_to_B,state_B_to_A)).transpose(0,1)
+            state_A = state[e_index[0,:]]
+            state_A_to_B = torch.gather(state_A,1,min_path_loss_idx[e_index[1,:]])
+            state_B = state[e_index[1,:]]
+            state_B_to_A = torch.gather(state_B,1,min_path_loss_idx[e_index[0,:]])
+            interference = torch.hstack((state_A_to_B,state_B_to_A))
             interference_and_min_pl_and_p_contention = torch.hstack((interference,min_path_loss[e_index[0,:]],min_path_loss[e_index[1,:]],p_contention))
 
-            label = self.actor_target.forward(interference_and_min_pl_and_p_contention)
+            asso = torch.eq(min_path_loss_idx[e_index[0,:]], min_path_loss_idx[e_index[1,:]] ).float()
+            actor_input = torch.hstack((asso,interference_and_min_pl_and_p_contention))
+
+            label = self.actor_target.forward(actor_input)
 
             action_mat = to_dense_adj(edge_index=e_index,batch=None,edge_attr=label).view(n_node,n_node)
-            action_mat = to_numpy(action_mat)
-        # print(action_mat)
-        return action_mat
+            action = to_numpy(action_mat)
+
+        return action
 
     @counted
     def step(self, batch):
@@ -213,25 +213,35 @@ class gnn_edge_label(learning_model):
 
                 x = min_path_loss
 
-                state_A_to_B = state[e_index[0,:],min_path_loss_idx[e_index[1,:],0]]
-                state_B_to_A = state[e_index[1,:],min_path_loss_idx[e_index[0,:],0]]
-
-                interference = torch.vstack((state_A_to_B,state_B_to_A)).transpose(0,1)
+                state_A = state[e_index[0,:]]
+                state_A_to_B = torch.gather(state_A,1,min_path_loss_idx[e_index[1,:]])
+                state_B = state[e_index[1,:]]
+                state_B_to_A = torch.gather(state_B,1,min_path_loss_idx[e_index[0,:]])
+                interference = torch.hstack((state_A_to_B,state_B_to_A))
                 interference_and_min_pl_and_p_contention = torch.hstack((interference,min_path_loss[e_index[0,:]],min_path_loss[e_index[1,:]],p_contention))
+                asso = torch.eq(min_path_loss_idx[e_index[0,:]], min_path_loss_idx[e_index[1,:]] ).float()
+                actor_input = torch.hstack((asso,interference_and_min_pl_and_p_contention))
 
-            label = self.actor.forward(interference_and_min_pl_and_p_contention)
-            normalized_label = label- torch.min(label)
-            normalized_label /= torch.max(label)
+            label = self.actor.forward(actor_input)
 
-            s_a = torch.hstack((interference,p_contention,label))
+            s_a = torch.hstack((asso,interference,p_contention,label))
+            self._printa("_train_actor states\n",to_numpy(state).T)
+            self._printa("_train_actor minidA\n",to_numpy(min_path_loss_idx[e_index[0,:]]).T)
+            self._printa("_train_actor minidB\n",to_numpy(min_path_loss_idx[e_index[1,:]]).T)
+            self._printa("_train_actor sapair\n",to_numpy(s_a).T)
+            self._printa("_train_actor minlos\n",to_numpy(torch.hstack((min_path_loss[e_index[0,:]],min_path_loss[e_index[1,:]]))).T)
+
             q = self.critic_target.forward(x,e_index,s_a)
             # self._printa(q)
-            q = -torch.pow(q,-10)
+            q = self._fair_q(q)
             # self._printa(q)
 
             loss += (-torch.sum(q)/sample['n_node'])
 
-            loss += (self.EQUALIZATION_FACTOR*nn.functional.mse_loss(label,normalized_label,reduction="sum")/sample['n_node'])
+            normalized_label = label-torch.min(label)
+            normalized_label /= torch.max(normalized_label)
+            loss += (self.EQUALIZATION_FACTOR*nn.functional.mse_loss(label,normalized_label.detach(),reduction="sum")/sample['n_node'])
+            # loss += (self.EQUALIZATION_FACTOR*torch.square(torch.mean(label)-0.5)/sample['n_node'])
 
         loss/=len(batch)
         self._print("_train_actor loss",loss)
@@ -240,7 +250,15 @@ class gnn_edge_label(learning_model):
         self.actor_optim.step()
 
         return to_numpy(loss)
-
+    def _fair_q(self,q):
+        assert self.FAIRNESS_ALPHA >=0
+        self._printa("_fair_q qraw",q.transpose(0,1))
+        if self.FAIRNESS_ALPHA == 1:
+            q = torch.log(q)
+        else:
+            q = torch.pow(q,1-self.FAIRNESS_ALPHA)/(1-self.FAIRNESS_ALPHA)
+        self._printa("_fair_q fair",q.transpose(0,1))
+        return q
     def _train_critic(self,batch):
         self._print("_train_critic")
         loss = torch.zeros(1)
@@ -259,16 +277,20 @@ class gnn_edge_label(learning_model):
 
                 x = min_path_loss
 
-                state_A_to_B = state[e_index[0,:],min_path_loss_idx[e_index[1,:],0]]
-                state_B_to_A = state[e_index[1,:],min_path_loss_idx[e_index[0,:],0]]
+                state_A = state[e_index[0,:]]
+                state_A_to_B = torch.gather(state_A,1,min_path_loss_idx[e_index[1,:]])
+                state_B = state[e_index[1,:]]
+                state_B_to_A = torch.gather(state_B,1,min_path_loss_idx[e_index[0,:]])
+                interference = torch.hstack((state_A_to_B,state_B_to_A))
 
-                interference = torch.vstack((state_A_to_B,state_B_to_A)).transpose(0,1)
-
-                s_a = torch.hstack((interference,target,action))
+                asso = torch.eq(min_path_loss_idx[e_index[0,:]], min_path_loss_idx[e_index[1,:]] ).float()
+                s_a = torch.hstack((asso,interference,target,action))
+                self._printa("_train_critic sapair\n",to_numpy(s_a).T)
 
             q = self.critic.forward(x,e_index,s_a)
             loss += (nn.functional.mse_loss(q,to_tensor(sample['reward']),reduction="sum")/sample['n_node'])
-
+            self._printa("_train_critic critic",to_numpy(q).T)
+            self._printa("_train_critic reward",sample['reward'].T)
         loss/=len(batch)
         self._print("_train_critic loss",loss)
         self.critic_optim.zero_grad()

@@ -31,7 +31,7 @@ class sim_env(sim_env_to_controller_interface):
     TWT_START_TIME = 10000000
     TWT_ASLOT_TIME = 10000
 
-    def __init__(self, id=0, ns3_sim_time_s=1., app_packet_interval=20000, mac_packet_size=100, twt_log2_n_slot = 1):
+    def __init__(self, id=0, ns3_sim_time_s=5., app_packet_interval=20000, mac_packet_size=100, twt_log2_n_slot = 2):
         self.id = id
         self.ns3_sim_time_s = ns3_sim_time_s
         self.app_packet_interval = app_packet_interval
@@ -47,6 +47,7 @@ class sim_env(sim_env_to_controller_interface):
 
         self.MOVING_AVERAGE_DICT["reward"] = 0.
         self.MOVING_AVERAGE_DICT["min_reward"] = 0.
+        self.MOVING_AVERAGE_DICT["n_none_rwd"] = 0.
 
     def init_env(self):
         self.sample = {}
@@ -57,7 +58,7 @@ class sim_env(sim_env_to_controller_interface):
         cfg = wifi_net_config()
         cfg.PROG_PATH = self.PROG_PATH
         cfg.PROG_NAME = self.PROG_NAME
-        cfg.PROG_PORT = (self.N_STEP % 1000) + 5000 + self.id * 1000
+        cfg.PROG_PORT = 0
         cfg.PROG_SEED = (self.N_STEP % 1000) + 5000
         cfg.PROG_TIME = self.ns3_sim_time_s
 
@@ -101,13 +102,17 @@ class sim_env(sim_env_to_controller_interface):
         else:
             self.sample['reward'] = np.zeros((self.pl_model.n_sta, 1))
 
-        assert self.sample['state'].shape == (self.pl_model.n_sta, self.pl_model.n_ap)
-        assert self.sample['target'].shape == (self.pl_model.n_sta, self.pl_model.n_sta)
-        assert self.sample['action'].shape == (self.pl_model.n_sta, self.pl_model.n_sta)
-        assert self.sample['reward'].shape == (self.pl_model.n_sta, 1)
+        self.add_np_log("sta_loc",np.reshape(np.array(self.pl_model.sta_locs),(1,-1)))
+        self.add_np_log("state",np.reshape(self.sample['state'],(1,-1)))
+        self.add_np_log("reward",np.reshape(self.sample['reward'],(1,-1)))
+        self.add_np_log("target",np.reshape(self.sample['target'],(1,-1)))
 
         if not np.isnan(np.sum(self.sample['reward'])):
             if self.memory and not np.isnan(np.sum(self.sample['reward'])):
+                assert self.sample['state'].shape == (self.pl_model.n_sta, self.pl_model.n_ap)
+                assert self.sample['target'].shape == (self.pl_model.n_sta, self.pl_model.n_sta)
+                assert self.sample['action'].shape == (self.pl_model.n_sta, self.pl_model.n_sta) or self.sample['action'].shape == (self.pl_model.n_sta, 1)
+                assert self.sample['reward'].shape == (self.pl_model.n_sta, 1)
                 self.memory.step(self.sample.copy())
         else:
             print("nan in reward drop sample")
@@ -123,9 +128,6 @@ class sim_env(sim_env_to_controller_interface):
         ## exploration?
         action = self.actor.gen_action(state)
         # print(action)
-        action -= np.min(action[~np.eye(action.shape[0],dtype=bool)])
-        action /= np.max(action[~np.eye(action.shape[0],dtype=bool)])
-        np.fill_diagonal(action,0)
         return action
 
     def formate_np_state(self, state) -> np.array:
@@ -136,8 +138,9 @@ class sim_env(sim_env_to_controller_interface):
 
     def formate_np_action(self, action) -> dict:
         ## action to twt list
-        sta_twt_slot_id = cut_into_2_k(action,self.pl_model.n_sta,self.twt_log2_n_slot)
+        sta_twt_slot_id = self.format_act_to_sta_twt_idx(action)
         self._printa(sta_twt_slot_id)
+        self.add_np_log("sta_twt_slot_id",np.reshape(sta_twt_slot_id,(1,-1)))
 
         twt_cfg = {}
         twt_cfg['twtstarttime'] = np.ones(self.pl_model.n_sta)*self.TWT_START_TIME
@@ -147,12 +150,30 @@ class sim_env(sim_env_to_controller_interface):
 
         return twt_cfg
 
+    def format_act_to_sta_twt_idx(self, action):
+        self._printa("gen_action, araw\n", action,np.min(action[~np.eye(action.shape[0],dtype=bool)]),np.max(action[~np.eye(action.shape[0],dtype=bool)]))
+        action -= np.min(action[~np.eye(action.shape[0],dtype=bool)])
+        self._printa("gen_action, -min\n", action,np.min(action[~np.eye(action.shape[0],dtype=bool)]),np.max(action[~np.eye(action.shape[0],dtype=bool)]))
+        action /= np.max(action[~np.eye(action.shape[0],dtype=bool)])
+        self._printa("gen_action. /max\n", action,np.min(action[~np.eye(action.shape[0],dtype=bool)]),np.max(action[~np.eye(action.shape[0],dtype=bool)]))
+        np.fill_diagonal(action,0)
+        str = ""
+        for i in range(9):
+            lvl = float(i+1)/10
+            str += (">%.1f=") % lvl
+            str += ("%3d~") % ((action>lvl).sum())
+            str += ("%.2f, ") % ((action>lvl).sum()/(action.shape[0]*(action.shape[0]-1)))
+        self._printa("gen_action, ", str)
+
+        return cut_into_2_k(action,self.pl_model.n_sta,self.twt_log2_n_slot)
+
     def formate_dict_reward(self, reward) -> np.array:
         # print(reward,"+++++++++++++++++")
         ret = reward['thr']/(1e6/self.app_packet_interval)
         self._printa(ret)
-        self._printa(self._moving_average("reward",np.mean(ret)))
-        self._printa(self._moving_average("min_reward",np.min(ret)))
+        self._printa(self._moving_average("reward",np.mean(ret)),np.mean(ret))
+        self._printa(self._moving_average("min_reward",np.min(ret)),np.min(ret))
+        self._printa(self._moving_average("n_none_rwd",ret.size - np.count_nonzero(ret)),ret.size - np.count_nonzero(ret))
 
         return ret[:,np.newaxis]
 

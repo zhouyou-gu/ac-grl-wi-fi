@@ -19,12 +19,10 @@ class WGNN(nn.Module):
 
         in_dims = []
         out_dims = []
-        in_dims.append(in_node_channels)
-        out_dims.append(hidden_node_channels)
-        for l in range(n_layer-1):
-            in_dims.append(hidden_node_channels * hidden_edge_channels)
+        for l in range(n_layer):
+            in_dims.append(hidden_node_channels)
             out_dims.append(hidden_node_channels)
-        in_dims.append(hidden_node_channels * hidden_edge_channels)
+        in_dims.append(hidden_node_channels)
         out_dims.append(out_node_channels)
         for i, j in enumerate(in_dims):
             in_dims[i] = int(in_dims[i])
@@ -34,32 +32,54 @@ class WGNN(nn.Module):
         for l in range(n_layer):
             self.conv_list.append(nn.ModuleList())
             for c in range(hidden_edge_channels):
-                self.conv_list[l].append(GCNConv(in_dims[l], out_dims[l],add_self_loops=False,normalize=False))
+                self.conv_list[l].append(GCNConv(in_dims[l], out_dims[l],add_self_loops=True,normalize=True))
+
+        self.in_edge_emb = nn.Sequential(
+                nn.Linear(in_edge_channels, in_edge_channels * HIDDEN_DIM_MULTIPLIER),
+                nn.ReLU(),
+                nn.Linear(in_edge_channels * HIDDEN_DIM_MULTIPLIER, in_edge_channels * HIDDEN_DIM_MULTIPLIER),
+                nn.ReLU(),
+                nn.Linear(in_edge_channels * HIDDEN_DIM_MULTIPLIER, hidden_edge_channels),
+                nn.ReLU(),
+            )
+
+        self.in_node_emb = nn.Sequential(
+                nn.Linear(in_node_channels, in_node_channels * HIDDEN_DIM_MULTIPLIER),
+                nn.ReLU(),
+                nn.Linear(in_node_channels * HIDDEN_DIM_MULTIPLIER, in_node_channels * HIDDEN_DIM_MULTIPLIER),
+                nn.ReLU(),
+                nn.Linear(in_node_channels * HIDDEN_DIM_MULTIPLIER, hidden_node_channels),
+                nn.ReLU(),
+            )
+
+        self.hidden_node_emb = nn.Sequential(
+                        nn.Linear(hidden_node_channels * hidden_edge_channels, hidden_node_channels * hidden_edge_channels * HIDDEN_DIM_MULTIPLIER),
+                        nn.ReLU(),
+                        nn.Linear(hidden_node_channels * hidden_edge_channels * HIDDEN_DIM_MULTIPLIER, hidden_node_channels * hidden_edge_channels * HIDDEN_DIM_MULTIPLIER),
+                        nn.ReLU(),
+                        nn.Linear(hidden_node_channels * hidden_edge_channels * HIDDEN_DIM_MULTIPLIER, hidden_node_channels),
+                        nn.ReLU(),
+                    )
 
         self.read_out = nn.Sequential(
-                    nn.Linear(hidden_node_channels * hidden_edge_channels, hidden_node_channels * hidden_edge_channels),
+                    nn.Linear(hidden_node_channels + in_node_channels, (hidden_node_channels + in_node_channels) * HIDDEN_DIM_MULTIPLIER),
                     nn.ReLU(),
-                    nn.Linear(hidden_node_channels * hidden_edge_channels, hidden_node_channels * hidden_edge_channels),
+                    nn.Linear((hidden_node_channels + in_node_channels) * HIDDEN_DIM_MULTIPLIER, (hidden_node_channels + in_node_channels) * HIDDEN_DIM_MULTIPLIER),
                     nn.ReLU(),
-                    nn.Linear(hidden_node_channels * hidden_edge_channels, out_node_channels),
+                    nn.Linear((hidden_node_channels + in_node_channels) * HIDDEN_DIM_MULTIPLIER, out_node_channels),
                 )
-        self.edge_emb = nn.Sequential(
-                            nn.Linear(in_edge_channels, in_edge_channels * HIDDEN_DIM_MULTIPLIER),
-                            nn.ReLU(),
-                            nn.Linear(in_edge_channels * HIDDEN_DIM_MULTIPLIER, in_edge_channels * HIDDEN_DIM_MULTIPLIER),
-                            nn.ReLU(),
-                            nn.Linear(in_edge_channels * HIDDEN_DIM_MULTIPLIER, hidden_edge_channels),
-                        )
-
-    def forward(self, x, edge_index, edge_weight):
-        edge_weight = self.edge_emb(edge_weight)
+    def forward(self, in_x, edge_index, edge_weight):
+        x = self.in_node_emb.forward(in_x)
+        edge_weight = self.in_edge_emb(edge_weight)
 
         layer:nn.ModuleList
         for layer in self.conv_list:
+            # print(layer[0].forward(x, edge_index, edge_weight[:,0]).relu())
             x = torch.cat([e.forward(x, edge_index, edge_weight[:,i]).relu() for i, e in enumerate(layer)], dim=1)
+            x = self.hidden_node_emb.forward(x)
 
-        y = self.read_out(x)
-        y = nn.functional.elu(y) + 1.001
+        y = self.read_out(torch.cat((x,in_x),dim=1)).sigmoid()
+        # y = nn.functional.elu(y-1.) + 1.001
         return y
 
 class ELNN(nn.Module):

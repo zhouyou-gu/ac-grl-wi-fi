@@ -45,9 +45,6 @@ class sim_env(sim_env_to_controller_interface):
         self.ns3_env:sim_wifi_net = None
         self.actor = None
 
-        self.MOVING_AVERAGE_DICT["reward"] = 0.
-        self.MOVING_AVERAGE_DICT["min_reward"] = 0.
-        self.MOVING_AVERAGE_DICT["n_none_rwd"] = 0.
 
     def init_env(self):
         self.sample = {}
@@ -102,10 +99,10 @@ class sim_env(sim_env_to_controller_interface):
         else:
             self.sample['reward'] = np.zeros((self.pl_model.n_sta, 1))
 
-        self.add_np_log("sta_loc",np.reshape(np.array(self.pl_model.sta_locs),(1,-1)))
-        self.add_np_log("state",np.reshape(self.sample['state'],(1,-1)))
-        self.add_np_log("reward",np.reshape(self.sample['reward'],(1,-1)))
-        self.add_np_log("target",np.reshape(self.sample['target'],(1,-1)))
+        self._add_np_log("sta_loc", np.reshape(np.array(self.pl_model.sta_locs), (1, -1)))
+        self._add_np_log("state", np.reshape(self.sample['state'], (1, -1)))
+        self._add_np_log("reward", np.reshape(self.sample['reward'], (1, -1)))
+        self._add_np_log("target", np.reshape(self.sample['target'], (1, -1)))
 
         if not np.isnan(np.sum(self.sample['reward'])):
             if self.memory and not np.isnan(np.sum(self.sample['reward'])):
@@ -140,7 +137,7 @@ class sim_env(sim_env_to_controller_interface):
         ## action to twt list
         sta_twt_slot_id = self.format_act_to_sta_twt_idx(action)
         self._printa(sta_twt_slot_id)
-        self.add_np_log("sta_twt_slot_id",np.reshape(sta_twt_slot_id,(1,-1)))
+        self._add_np_log("sta_twt_slot_id", np.reshape(sta_twt_slot_id, (1, -1)))
 
         twt_cfg = {}
         twt_cfg['twtstarttime'] = np.ones(self.pl_model.n_sta)*self.TWT_START_TIME
@@ -151,12 +148,12 @@ class sim_env(sim_env_to_controller_interface):
         return twt_cfg
 
     def format_act_to_sta_twt_idx(self, action):
-        self._printa("gen_action, araw\n", action,np.min(action[~np.eye(action.shape[0],dtype=bool)]),np.max(action[~np.eye(action.shape[0],dtype=bool)]))
-        action -= np.min(action[~np.eye(action.shape[0],dtype=bool)])
-        self._printa("gen_action, -min\n", action,np.min(action[~np.eye(action.shape[0],dtype=bool)]),np.max(action[~np.eye(action.shape[0],dtype=bool)]))
-        action /= np.max(action[~np.eye(action.shape[0],dtype=bool)])
-        self._printa("gen_action. /max\n", action,np.min(action[~np.eye(action.shape[0],dtype=bool)]),np.max(action[~np.eye(action.shape[0],dtype=bool)]))
-        np.fill_diagonal(action,0)
+        # self._printa("gen_action, araw\n", action,np.min(action[~np.eye(action.shape[0],dtype=bool)]),np.max(action[~np.eye(action.shape[0],dtype=bool)]))
+        # action -= np.min(action[~np.eye(action.shape[0],dtype=bool)])
+        # self._printa("gen_action, -min\n", action,np.min(action[~np.eye(action.shape[0],dtype=bool)]),np.max(action[~np.eye(action.shape[0],dtype=bool)]))
+        # action /= np.max(action[~np.eye(action.shape[0],dtype=bool)])
+        # self._printa("gen_action. /max\n", action,np.min(action[~np.eye(action.shape[0],dtype=bool)]),np.max(action[~np.eye(action.shape[0],dtype=bool)]))
+        # np.fill_diagonal(action,0)
         str = ""
         for i in range(9):
             lvl = float(i+1)/10
@@ -171,9 +168,9 @@ class sim_env(sim_env_to_controller_interface):
         # print(reward,"+++++++++++++++++")
         ret = reward['thr']/(1e6/self.app_packet_interval)
         self._printa(ret)
-        self._printa(self._moving_average("reward",np.mean(ret)),np.mean(ret))
-        self._printa(self._moving_average("min_reward",np.min(ret)),np.min(ret))
-        self._printa(self._moving_average("n_none_rwd",ret.size - np.count_nonzero(ret)),ret.size - np.count_nonzero(ret))
+        self._printa("_moving_average reward",self._moving_average("reward",np.mean(ret)),np.mean(ret))
+        self._printa("_moving_average min_reward",self._moving_average("min_reward",np.min(ret)),np.min(ret))
+        self._printa("_moving_average n_none_rwd",self._moving_average("n_none_rwd",ret.size - np.count_nonzero(ret)),ret.size - np.count_nonzero(ret))
 
         return ret[:,np.newaxis]
 

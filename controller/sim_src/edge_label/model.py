@@ -186,7 +186,7 @@ class gnn_edge_label(learning_model):
 
             self._print("_train_infer diff",torch.hstack((target,result,state)).transpose(0,1)[:,0])
 
-            loss += (nn.functional.cross_entropy(result,target,reduction="sum")/sample['n_node'])
+            loss += nn.functional.cross_entropy(result,target)
 
         loss/=len(batch)
         self._print("_train_infer loss",loss)
@@ -236,12 +236,7 @@ class gnn_edge_label(learning_model):
             q = self._fair_q(q)
             # self._printa(q)
 
-            loss += (-torch.sum(q)/sample['n_node'])
-
-            normalized_label = label-torch.min(label)
-            normalized_label /= torch.max(normalized_label)
-            loss += (self.EQUALIZATION_FACTOR*nn.functional.mse_loss(label,normalized_label.detach(),reduction="sum")/sample['n_node'])
-            # loss += (self.EQUALIZATION_FACTOR*torch.square(torch.mean(label)-0.5)/sample['n_node'])
+            loss += (-torch.mean(q))
 
         loss/=len(batch)
         self._print("_train_actor loss",loss)
@@ -288,7 +283,7 @@ class gnn_edge_label(learning_model):
                 self._printa("_train_critic sapair\n",to_numpy(s_a).T)
 
             q = self.critic.forward(x,e_index,s_a)
-            loss += (nn.functional.mse_loss(q,to_tensor(sample['reward']),reduction="sum")/sample['n_node'])
+            loss += nn.functional.mse_loss(q,to_tensor(sample['reward']))
             self._printa("_train_critic critic",to_numpy(q).T)
             self._printa("_train_critic reward",sample['reward'].T)
         loss/=len(batch)

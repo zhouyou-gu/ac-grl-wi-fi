@@ -87,17 +87,19 @@ class ParameterConfig(dict):
 
 class StatusObject:
     N_STEP = 0
-    DEBUG_STEP = 1000
+    DEBUG_STEP = 100
     DEBUG = False
 
     MOVING_AVERAGE_TIME_WINDOW = 100
+
+    INIT_MOVING_AVERAGE = False
+    INIT_LOGGED_NP_DATA = False
+
     MOVING_AVERAGE_DICT = {}
     LOGGED_NP_DATA = {}
 
     def save(self, path: str, postfix: str):
         pass
-    def _add_np_log_field(self, key:str, length:int):
-        self.LOGGED_NP_DATA[key] = np.zeros((0,length+LOGGED_NP_DATA_HEADER_SIZE))
 
     def save_np(self, path: str, postfix: str):
         try:
@@ -109,12 +111,16 @@ class StatusObject:
             data_path = os.path.join(path,data_name)
             np.savetxt(data_path, self.LOGGED_NP_DATA[key] , delimiter=',')
 
-    def add_np_log(self, key, float_row_data, g_step=0):
+    def _add_np_log(self, key, float_row_data, g_step=0):
+        if not self.INIT_LOGGED_NP_DATA:
+            self.LOGGED_NP_DATA = {}
+            self.INIT_LOGGED_NP_DATA = True
+
         float_row_data = np.squeeze(float_row_data)
         assert isinstance(float_row_data, np.ndarray)
         assert float_row_data.ndim == 1
         if not (key in self.LOGGED_NP_DATA):
-            self._add_np_log_field(key,float_row_data.size)
+            self.LOGGED_NP_DATA[key] = np.zeros((0,float_row_data.size+LOGGED_NP_DATA_HEADER_SIZE))
         assert float_row_data.size + LOGGED_NP_DATA_HEADER_SIZE == self.LOGGED_NP_DATA[key].shape[1]
         s_t = np.array([g_step,self.N_STEP,time()])
         data = np.hstack((s_t,float_row_data))
@@ -132,22 +138,53 @@ class StatusObject:
         if self.DEBUG:
             print(("%6d\t" % self.N_STEP) + ("%10s\t" % self.__class__.__name__) + " ".join(map(str, args)), **kwargs)
     def _moving_average(self, key, new_value):
+        if not self.INIT_MOVING_AVERAGE:
+            self.MOVING_AVERAGE_DICT = {}
+            self.INIT_MOVING_AVERAGE = True
+
+        if not (key in self.MOVING_AVERAGE_DICT):
+            self.MOVING_AVERAGE_DICT[key] = 0.
+
         if key in self.MOVING_AVERAGE_DICT:
             self.MOVING_AVERAGE_DICT[key] = self.MOVING_AVERAGE_DICT[key] * (1.-1./self.MOVING_AVERAGE_TIME_WINDOW) + 1./self.MOVING_AVERAGE_TIME_WINDOW * new_value
             return self.MOVING_AVERAGE_DICT[key]
         else:
             return 0.
+    def _debug(self, debug_step=100):
+        self.DEBUG = True
+        self.DEBUG_STEP = debug_step
 
 if __name__ == '__main__':
     a = StatusObject()
-    a.DEBUG = True
+    # a.DEBUG = True
     b = StatusObject()
+    # b.DEBUG = True
+    b._debug()
+
+    b._add_np_log("hello", np.ones(6))
+    b._moving_average("hello", 1.)
+
     c = StatusObject()
-    c.DEBUG = 10
-    print(a.DEBUG,b.DEBUG,c.DEBUG)
-    cfg = ParameterConfig()
-    cfg["x"] = 5
-    cfg["x"] = 9
-    OUT_FOLDER = os.path.splitext(os.path.basename(__file__))[0] + "-" + get_current_time_str()
-    OUT_FOLDER = os.path.join(os.path.dirname(os.path.realpath(__file__)), OUT_FOLDER)
-    cfg.save(OUT_FOLDER,"hello")
+    print(a.DEBUG,c.DEBUG,b.DEBUG)
+    # c.DEBUG = 10
+    print(a.DEBUG,b.LOGGED_NP_DATA,c.LOGGED_NP_DATA)
+    print(a.DEBUG,b.MOVING_AVERAGE_DICT,c.MOVING_AVERAGE_DICT)
+    # cfg = ParameterConfig()
+    # cfg["x"] = 5
+    # cfg["x"] = 9
+    # OUT_FOLDER = os.path.splitext(os.path.basename(__file__))[0] + "-" + get_current_time_str()
+    # OUT_FOLDER = os.path.join(os.path.dirname(os.path.realpath(__file__)), OUT_FOLDER)
+    # cfg.save(OUT_FOLDER,"hello")
+
+    # import time
+    # from multiprocessing import Process
+    #
+    #
+    # def func():
+    #     time.sleep(10000)
+    # p1 = Process(target=func, args=())
+    # p2 = Process(target=func, args=())
+    # p1.start()
+    # p2.start()
+    # p1.join()
+    # p2.join()

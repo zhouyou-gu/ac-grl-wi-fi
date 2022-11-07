@@ -174,9 +174,11 @@ class base_model(learning_model):
                 state = to_tensor(sample['state'],requires_grad=False)
                 state = torch.hstack((state[e_index[0,:]],state[e_index[1,:]]))
 
+                actor_input = state
+
                 x = to_tensor(sample['state'],requires_grad=False)
 
-            label = self.actor.forward(state)
+            label = self.actor.forward(actor_input)
 
             s_a = torch.hstack((state,label))
             self._printa("_train_actor states\n",to_numpy(state).T)

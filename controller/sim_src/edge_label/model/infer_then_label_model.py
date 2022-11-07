@@ -1,5 +1,6 @@
 from base_model import *
 
+
 class infer_then_label(base_model):
     def __init__(self, id, edge_dim=4, node_dim=4):
         base_model.__init__(self,id,edge_dim,node_dim)

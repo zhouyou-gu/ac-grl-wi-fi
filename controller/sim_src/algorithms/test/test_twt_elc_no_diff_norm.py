@@ -1,18 +1,13 @@
 import os
 import random
 
-import networkx as nx
 import numpy as np
 import torch
-from torch_geometric.utils import from_networkx
 
-from sim_src.edge_label.gw_cut import cut_into_2_k
-from sim_src.edge_label.model import gnn_edge_label
+from sim_src.edge_label.model.base_model import base_model
 from sim_src.ns3_ctrl.ns3_ctrl import build_ns3
-from sim_src.ns3_ctrl.wifi_net_ctrl import sim_wifi_net, wifi_net_config
-from sim_src.sim_env.path_loss import path_loss
 from sim_src.sim_env.sim_env import sim_env
-from sim_src.util import to_tensor, to_numpy, get_current_time_str, ParameterConfig
+from sim_src.util import get_current_time_str, ParameterConfig
 
 np.set_printoptions(threshold=5)
 np.set_printoptions(linewidth=1000)
@@ -34,7 +29,7 @@ def run_sim(ALPHA=0.):
 
     n_step = 1000
     batch_size = 1
-    model = gnn_edge_label(0)
+    model = base_model(0)
     model.DEBUG_STEP = 10
     model.DEBUG = True
 

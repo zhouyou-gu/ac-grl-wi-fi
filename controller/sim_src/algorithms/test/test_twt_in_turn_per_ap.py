@@ -2,14 +2,8 @@ import random
 
 import numpy as np
 
-from sim_src.edge_label.gw_cut import cut_into_2_k
-from sim_src.edge_label.model import gnn_edge_label
 from sim_src.ns3_ctrl.ns3_ctrl import build_ns3
-from sim_src.ns3_ctrl.wifi_net_ctrl import sim_wifi_net, wifi_net_config
-from sim_src.sim_env.path_loss import path_loss
 from sim_src.sim_env.sim_env import sim_env
-from sim_src.util import to_tensor, to_numpy
-
 
 np.set_printoptions(threshold=np.inf)
 np.set_printoptions(linewidth=np.inf)

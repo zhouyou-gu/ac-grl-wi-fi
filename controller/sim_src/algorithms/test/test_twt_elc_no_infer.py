@@ -57,10 +57,14 @@ class norm_model(base_model):
             self._printa("_train_actor minlos\n",to_numpy(torch.hstack((min_path_loss[e_index[0,:]],min_path_loss[e_index[1,:]]))).T)
 
             q = self.critic_target.forward(x,e_index,s_a)
+            # self._printa(q)
             q = self._fair_q(q)
+            # self._printa(q)
             q = -torch.mean(q)
             q.backward()
+            # w_g = label.grad - torch.mean(label.grad)
             lable_g = label.grad.detach()
+            # lable_g = lable_g - torch.mean(lable_g)
             scale = label_no_grad
             scale[lable_g>0.] = 1. - scale[lable_g>0.]
             label_differentiable = self.actor.forward(actor_input)
@@ -68,6 +72,9 @@ class norm_model(base_model):
             self._printa("_train_actor label.grad\n",to_numpy(label.grad).T)
             self._printa("_train_actor lable_g\n",to_numpy(lable_g).T)
             self._printa("_train_actor scale\n",to_numpy(scale).T)
+            # normalized_label = label-torch.min(label)
+            # normalized_label /= torch.max(normalized_label)
+            # loss += (self.EQUALIZATION_FACTOR*nn.functional.mse_loss(label,normalized_label.detach(),reduction="sum")/sample['n_node'])
 
         loss/=len(batch)
         self._print("_train_actor loss",loss)

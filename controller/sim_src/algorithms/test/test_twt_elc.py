@@ -1,16 +1,14 @@
 import os
 import random
+from os.path import expanduser
 
 import numpy as np
 import torch
-
-from sim_src.edge_label.gw_cut import cut_into_2_k
-from sim_src.edge_label.model import gnn_edge_label
+from sim_src.edge_label.model.base_model import base_model
 from sim_src.ns3_ctrl.ns3_ctrl import build_ns3
-from sim_src.ns3_ctrl.wifi_net_ctrl import sim_wifi_net, wifi_net_config
-from sim_src.sim_env.path_loss import path_loss
 from sim_src.sim_env.sim_env import sim_env
-from sim_src.util import to_tensor, to_numpy, get_current_time_str, ParameterConfig
+from sim_src.util import get_current_time_str, ParameterConfig
+
 
 np.set_printoptions(threshold=5)
 np.set_printoptions(linewidth=1000)
@@ -22,17 +20,18 @@ def run_sim(ALPHA=0.):
     OUT_FOLDER = os.path.splitext(os.path.basename(__file__))[0] + "-" + get_current_time_str()
     OUT_FOLDER = os.path.join(os.path.dirname(os.path.realpath(__file__)), OUT_FOLDER)
 
-
-    build_ns3("/home/soyo/wifi-ai/ns-3-dev")
+    home = expanduser("~")
+    ns3_path = os.path.join(home,"wifi-ai/ns-3-dev")
+    build_ns3(ns3_path)
     # exit(0)
     e = sim_env(id=random.randint(40,60))
-    e.PROG_PATH = "/home/soyo/wifi-ai/ns-3-dev"
+    e.PROG_PATH = ns3_path
     e.PROG_NAME = "wifi-ai/env"
     e.DEBUG = True
 
     n_step = 1000
     batch_size = 1
-    model = gnn_edge_label(0)
+    model = base_model(0)
     model.DEBUG_STEP = 10
     model.DEBUG = True
 
@@ -54,4 +53,5 @@ def run_sim(ALPHA=0.):
             e.save_np(OUT_FOLDER,str(i))
 
 for A in [0., 1., 2., 5., 10.]:
+    print("hello")
     run_sim(A)

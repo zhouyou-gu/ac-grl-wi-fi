@@ -128,7 +128,7 @@ class base_model(learning_model):
         self._printa("_fair_q fair",q.transpose(0,1))
         return q
     def setup_infer(self):
-        # NOT USED IN THIS MODEL
+        # NOT USED IN BASE MODEL
         self.infer = INFNN(edge_feature=self.node_dim*2,edge_type=2)
         self.infer_target = INFNN(edge_feature=self.node_dim*2,edge_type=2)
         self.infer_optim = optim.Adam(self.infer.parameters(), lr=self.INF_LR)

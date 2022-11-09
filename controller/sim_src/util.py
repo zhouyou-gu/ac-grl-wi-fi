@@ -134,9 +134,11 @@ class StatusObject:
         if self.DEBUG and (
                 self.N_STEP % self.DEBUG_STEP == 0 or self.N_STEP % self.DEBUG_STEP == 1 or self.N_STEP % self.DEBUG_STEP == 2):
             print(("%6d\t" % self.N_STEP) + " ".join(map(str, args)), **kwargs)
+
     def _printa(self, *args, **kwargs):
         if self.DEBUG:
             print(("%6d\t" % self.N_STEP) + ("%10s\t" % self.__class__.__name__) + " ".join(map(str, args)), **kwargs)
+
     def _moving_average(self, key, new_value):
         if not self.INIT_MOVING_AVERAGE:
             self.MOVING_AVERAGE_DICT = {}
@@ -150,9 +152,22 @@ class StatusObject:
             return self.MOVING_AVERAGE_DICT[key]
         else:
             return 0.
+
     def _debug(self, debug_step=100):
         self.DEBUG = True
         self.DEBUG_STEP = debug_step
+
+
+def GET_LOG_PATH_FOR_SIM_SCRIPT(sim_script_path):
+    OUT_ALL_SIM_FOLDER = os.path.splitext(os.path.basename(sim_script_path))[0]
+    OUT_ALL_SIM_FOLDER = os.path.join(os.path.dirname(os.path.realpath(sim_script_path)), OUT_ALL_SIM_FOLDER)
+    try:
+        os.mkdir(OUT_ALL_SIM_FOLDER)
+    except:
+        pass
+    SIM_NAME_TIME = os.path.splitext(os.path.basename(sim_script_path))[0] + "-" + get_current_time_str()
+    OUT_PER_SIM_FOLDER = os.path.join(OUT_ALL_SIM_FOLDER, SIM_NAME_TIME)
+    return OUT_PER_SIM_FOLDER
 
 if __name__ == '__main__':
     a = StatusObject()

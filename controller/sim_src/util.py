@@ -165,7 +165,7 @@ def GET_LOG_PATH_FOR_SIM_SCRIPT(sim_script_path):
         os.mkdir(OUT_ALL_SIM_FOLDER)
     except:
         pass
-    SIM_NAME_TIME = os.path.splitext(os.path.basename(sim_script_path))[0] + "-" + get_current_time_str()
+    SIM_NAME_TIME = os.path.splitext(os.path.basename(sim_script_path))[0] + "-" + get_current_time_str() + "-ail"
     OUT_PER_SIM_FOLDER = os.path.join(OUT_ALL_SIM_FOLDER, SIM_NAME_TIME)
     return OUT_PER_SIM_FOLDER
 

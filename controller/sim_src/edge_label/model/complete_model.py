@@ -1,5 +1,4 @@
-from infer_then_label_model import *
-
+from sim_src.edge_label.model.infer_then_label_model import *
 
 class complete_model(infer_then_label):
     def _train_actor(self,batch):

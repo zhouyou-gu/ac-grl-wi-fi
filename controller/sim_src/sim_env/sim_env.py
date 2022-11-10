@@ -101,6 +101,7 @@ class sim_env(sim_env_to_controller_interface):
 
         self._add_np_log("sta_loc", np.reshape(np.array(self.pl_model.sta_locs), (1, -1)))
         self._add_np_log("state", np.reshape(self.sample['state'], (1, -1)))
+        self._add_np_log("action", np.reshape(self.sample['action'], (1, -1)))
         self._add_np_log("reward", np.reshape(self.sample['reward'], (1, -1)))
         self._add_np_log("target", np.reshape(self.sample['target'], (1, -1)))
 

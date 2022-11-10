@@ -1,4 +1,9 @@
-from base_model import *
+import networkx as nx
+import torch
+from torch_geometric.utils import from_networkx
+
+from sim_src.edge_label.model.base_model import base_model
+from sim_src.util import to_tensor, to_numpy
 
 
 class weight_drift_protection(base_model):

@@ -1,4 +1,11 @@
-from base_model import *
+import networkx as nx
+import torch
+from torch import optim, nn
+from torch_geometric.utils import from_networkx, to_dense_adj
+
+from sim_src.edge_label.model.base_model import base_model
+from sim_src.edge_label.nn import INFNN, WGNN, ELNN
+from sim_src.util import hard_update_inplace, to_tensor, to_numpy
 
 
 class infer_then_label(base_model):

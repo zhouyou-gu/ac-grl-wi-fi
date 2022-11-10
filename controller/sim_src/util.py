@@ -21,6 +21,10 @@ def to_tensor(ndarray, requires_grad=False, dtype=FLOAT):
         return t.type(dtype).to(torch.cuda.current_device())
     else:
         return t.type(dtype)
+def to_device(var):
+    if USE_CUDA:
+        return var.to(torch.cuda.current_device())
+    return var
 
 def cat_str_dot_txt(sl):
     ret = ""

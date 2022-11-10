@@ -5,7 +5,7 @@ from torch_geometric.utils import from_networkx, to_dense_adj
 
 from sim_src.edge_label.model.base_model import base_model
 from sim_src.edge_label.nn import INFNN, WGNN, ELNN
-from sim_src.util import hard_update_inplace, to_tensor, to_numpy
+from sim_src.util import hard_update_inplace, to_tensor, to_numpy, to_device
 
 
 class infer_then_label(base_model):
@@ -34,7 +34,7 @@ class infer_then_label(base_model):
         n_node = state_np.shape[0]
         with torch.no_grad():
             G = nx.complete_graph(n_node)
-            e_index:torch.Tensor = from_networkx(G).edge_index
+            e_index = to_device(from_networkx(G).edge_index)
             state = to_tensor(state_np)
             state = torch.hstack((state[e_index[0,:]],state[e_index[1,:]]))
 
@@ -63,10 +63,10 @@ class infer_then_label(base_model):
 
     def _train_infer(self,batch):
         self._print("_train_infer")
-        loss = torch.zeros(1)
+        loss = to_device(torch.zeros(1))
         for sample in batch:
             G = nx.complete_graph(sample['n_node'])
-            e_index:torch.Tensor = from_networkx(G).edge_index
+            e_index = to_device(from_networkx(G).edge_index)
 
             state = to_tensor(sample['state'],requires_grad=False)
             state = torch.hstack((state[e_index[0,:]],state[e_index[1,:]]))
@@ -91,10 +91,10 @@ class infer_then_label(base_model):
 
     def _train_actor(self,batch):
         self._print("_train_actor")
-        loss = torch.zeros(1)
+        loss = to_device(torch.zeros(1))
         for sample in batch:
             G = nx.complete_graph(sample['n_node'])
-            e_index:torch.Tensor = from_networkx(G).edge_index
+            e_index = to_device(from_networkx(G).edge_index)
             with torch.no_grad():
                 state = to_tensor(sample['state'],requires_grad=False)
                 state = torch.hstack((state[e_index[0,:]],state[e_index[1,:]]))
@@ -141,10 +141,10 @@ class infer_then_label(base_model):
 
     def _train_critic(self,batch):
         self._print("_train_critic")
-        loss = torch.zeros(1)
+        loss = to_device(torch.zeros(1))
         for sample in batch:
             G = nx.complete_graph(sample['n_node'])
-            e_index:torch.Tensor = from_networkx(G).edge_index
+            e_index = to_device(from_networkx(G).edge_index)
             with torch.no_grad():
                 target = to_tensor(sample['target'],requires_grad=False)
                 target = target[e_index[0],e_index[1]].view(-1,1)

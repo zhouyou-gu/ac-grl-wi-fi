@@ -8,7 +8,8 @@ from torch_geometric.data import Data
 from torch_geometric.utils import from_networkx, to_dense_adj
 
 from sim_src.edge_label.nn import INFNN, ELNN, WGNN
-from sim_src.util import USE_CUDA, hard_update_inplace, counted, StatusObject, soft_update_inplace, to_numpy, to_tensor
+from sim_src.util import USE_CUDA, hard_update_inplace, counted, StatusObject, soft_update_inplace, to_numpy, to_tensor, \
+    to_device
 
 
 class learning_model(StatusObject):
@@ -150,7 +151,7 @@ class base_model(learning_model):
         n_node = state_np.shape[0]
         with torch.no_grad():
             G = nx.complete_graph(n_node)
-            e_index:torch.Tensor = from_networkx(G).edge_index
+            e_index = to_device(from_networkx(G).edge_index)
             state = to_tensor(state_np)
             state = torch.hstack((state[e_index[0,:]],state[e_index[1,:]]))
 
@@ -166,10 +167,10 @@ class base_model(learning_model):
 
     def _train_actor(self,batch):
         self._print("_train_actor")
-        loss = torch.zeros(1)
+        loss = to_device(torch.zeros(1))
         for sample in batch:
             G = nx.complete_graph(sample['n_node'])
-            e_index:torch.Tensor = from_networkx(G).edge_index
+            e_index = to_device(from_networkx(G).edge_index)
             with torch.no_grad():
                 state = to_tensor(sample['state'],requires_grad=False)
                 state = torch.hstack((state[e_index[0,:]],state[e_index[1,:]]))
@@ -201,10 +202,10 @@ class base_model(learning_model):
 
     def _train_critic(self,batch):
         self._print("_train_critic")
-        loss = torch.zeros(1)
+        loss = to_device(torch.zeros(1))
         for sample in batch:
             G = nx.complete_graph(sample['n_node'])
-            e_index:torch.Tensor = from_networkx(G).edge_index
+            e_index = to_device(from_networkx(G).edge_index)
             with torch.no_grad():
                 state = to_tensor(sample['state'],requires_grad=False)
                 state = torch.hstack((state[e_index[0,:]],state[e_index[1,:]]))

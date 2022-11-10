@@ -3,16 +3,16 @@ import torch
 from torch_geometric.utils import from_networkx
 
 from sim_src.edge_label.model.base_model import base_model
-from sim_src.util import to_tensor, to_numpy
+from sim_src.util import to_tensor, to_numpy, to_device
 
 
 class weight_drift_protection(base_model):
     def _train_actor(self,batch):
         self._print("_train_actor")
-        loss = torch.zeros(1)
+        loss = to_device(torch.zeros(1))
         for sample in batch:
             G = nx.complete_graph(sample['n_node'])
-            e_index:torch.Tensor = from_networkx(G).edge_index
+            e_index = to_device(from_networkx(G).edge_index)
             with torch.no_grad():
                 state = to_tensor(sample['state'],requires_grad=False)
                 state = torch.hstack((state[e_index[0,:]],state[e_index[1,:]]))

@@ -3,10 +3,11 @@ import random
 from os.path import expanduser
 
 from sim_src.sim_env.sim_env import sim_env
-from sim_src.util import ParameterConfig
+from sim_src.util import ParameterConfig, StatusObject
 
 
 def run_test(a,mc,log_path):
+    StatusObject.DISABLE_ALL_DEBUG = True
     ALPHA = a
     OUT_FOLDER = log_path
     model_class = mc
@@ -37,4 +38,5 @@ def run_test(a,mc,log_path):
         model.step(batch)
         if (i+1) % 100 == 0:
             model.save(OUT_FOLDER,str(i))
+        if (i+1) in [10, 100, 500, 1000]:
             e.save_np(OUT_FOLDER,str(i))

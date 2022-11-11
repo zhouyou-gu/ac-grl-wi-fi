@@ -117,7 +117,7 @@ class base_model(learning_model):
         l_c = self._train_critic(batch)
         l_a = self._train_actor(batch)
 
-        print(l_i,l_a,l_c)
+        self._printa(l_i,l_a,l_c)
         self.update_nn()
     def _fair_q(self,q):
         assert self.FAIRNESS_ALPHA >=0

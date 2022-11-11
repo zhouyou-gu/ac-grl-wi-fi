@@ -1,4 +1,5 @@
 import os
+import time
 from multiprocessing import Process
 from os.path import expanduser
 
@@ -19,15 +20,17 @@ for t in TEST_LIST:
 def run_cmd(cmd):
     os.system(cmd)
 
-
+n_test = 5
 p_list = []
 for cmd in CMD_LIST:
     print(cmd)
-    p = Process(target=run_cmd, args=(cmd,))
-    p_list.append(p)
+    for n in range(n_test):
+        p = Process(target=run_cmd, args=(cmd,))
+        p_list.append(p)
 
 for p in p_list:
     p.start()
+    time.sleep(2)
 
 for p in p_list:
     p.join()

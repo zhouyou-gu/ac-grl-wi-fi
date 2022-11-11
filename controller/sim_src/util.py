@@ -91,6 +91,7 @@ class ParameterConfig(dict):
 
 class StatusObject:
     N_STEP = 0
+    DISABLE_ALL_DEBUG = False
     DEBUG_STEP = 100
     DEBUG = False
 
@@ -135,12 +136,12 @@ class StatusObject:
             pprint.pprint(vars(self))
 
     def _print(self, *args, **kwargs):
-        if self.DEBUG and (
+        if self.DEBUG and not StatusObject.DISABLE_ALL_DEBUG and (
                 self.N_STEP % self.DEBUG_STEP == 0 or self.N_STEP % self.DEBUG_STEP == 1 or self.N_STEP % self.DEBUG_STEP == 2):
             print(("%6d\t" % self.N_STEP) + " ".join(map(str, args)), **kwargs)
 
     def _printa(self, *args, **kwargs):
-        if self.DEBUG:
+        if self.DEBUG and not StatusObject.DISABLE_ALL_DEBUG:
             print(("%6d\t" % self.N_STEP) + ("%10s\t" % self.__class__.__name__) + " ".join(map(str, args)), **kwargs)
 
     def _moving_average(self, key, new_value):

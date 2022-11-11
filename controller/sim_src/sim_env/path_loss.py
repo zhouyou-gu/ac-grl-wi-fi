@@ -83,9 +83,7 @@ class path_loss():
 
     def convert_loss_sta_ap_threshold(self, loss):
         ret = np.copy(loss)
-        print(ret)
         ret[ret>(self.txp_dbm-self.min_rssi_dbm)] = self.HIDDEN_LOSS
-        print(ret)
         return ret
 
     def convert_loss_sta_sta_binary(self, loss):

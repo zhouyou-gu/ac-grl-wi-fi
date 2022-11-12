@@ -44,10 +44,11 @@ for t in TEST_LIST:
         fig = plt.figure(figsize=(16, 6), dpi=80)
         ax = plt.gca()
         print(ax.get_position())
-        ax.set_position([0.05, 0.05, 0.675, 0.9])
+        ax.set_position([0.05, 0.05, 0.55, 0.9])
         FIG_NAME = "%s.ALPHA.%s.jpg"%(DIR,a)
         fig.suptitle(FIG_NAME)
-
+        ax.set_xlim([0, N_STEP])
+        ax.set_ylim([0, 0.2])
         for dir in ALL_DIR:
             data = load_res_dir_data(os.path.join(DIR_PATH,dir),"sim_env","reward",N_STEP-1)
             print(dir)
@@ -57,6 +58,5 @@ for t in TEST_LIST:
             if alpha == a:
                 res = get_uf_for_alpha(data[:,3:],a)
                 plt.plot(data[:,1], res, label=dir)
-                plt.plot(data[:,1], res, label=dir)
-        plt.legend(bbox_to_anchor=(1.01, 1))
+        plt.legend(bbox_to_anchor=(1.01, 1), loc="upper left")
         fig.savefig(os.path.join(DIR_PATH,FIG_NAME))

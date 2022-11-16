@@ -60,6 +60,7 @@ class gw_cut():
         for x in cut_a:
             for y in cut_b:
                 ret += H[x,y]
+                ret += H[y,x]
         return ret
 
 
@@ -97,6 +98,7 @@ if __name__ == '__main__':
     np.set_printoptions(linewidth=np.inf)
     def gen_rand_H(n):
         ret = np.random.randn(n,n)
+        ret = ret * ret
         for i in range(n):
             ret[i,i] = 0.
             for j in range(i+1,n):
@@ -104,8 +106,8 @@ if __name__ == '__main__':
 
         return ret
 
-    n = 200
-    m_solutions  = 10
+    n = 20
+    m_solutions  = 100
     H = gen_rand_H(n)
     o = gw_cut(n)
     o.set_edge_weights(H)

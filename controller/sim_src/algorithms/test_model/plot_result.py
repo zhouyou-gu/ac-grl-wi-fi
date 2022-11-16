@@ -97,7 +97,7 @@ for t in TEST_LIST:
         FIG_NAME = "%s.ALPHA.%s.min_rate.jpg"%(DIR,a)
         fig.suptitle(FIG_NAME)
         ax.set_xlim([0, N_STEP])
-        ax.set_ylim([0, 1])
+        ax.set_ylim([0, 0.2])
         for dir in ALL_DIR:
             data = load_res_dir_data(os.path.join(DIR_PATH,dir),"sim_env","reward",N_STEP-1)
             print(dir)

@@ -109,7 +109,7 @@ class sim_env(sim_env_to_controller_interface):
             if self.memory and not np.isnan(np.sum(self.sample['reward'])):
                 assert self.sample['state'].shape == (self.pl_model.n_sta, self.pl_model.n_ap)
                 assert self.sample['target'].shape == (self.pl_model.n_sta, self.pl_model.n_sta)
-                assert self.sample['action'].shape == (self.pl_model.n_sta, self.pl_model.n_sta) or self.sample['action'].shape == (self.pl_model.n_sta, 1)
+                assert self.sample['action'].shape[0] == self.pl_model.n_sta
                 assert self.sample['reward'].shape == (self.pl_model.n_sta, 1)
                 self.memory.step(self.sample.copy())
         else:

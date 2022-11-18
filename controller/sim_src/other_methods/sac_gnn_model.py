@@ -27,6 +27,7 @@ class sac_gnn_model(base_model):
             action = self.actor_target.forward(state,e_index).sigmoid()
 
             action = to_numpy(action)
+            action = np.random.binomial(1,action)
 
         if self.EXPLORATION:
             action = self.add_noise(action)
@@ -47,11 +48,13 @@ class sac_gnn_model(base_model):
                 rwd = to_tensor(sample['reward'])
                 rwd = self._fair_q(rwd)
                 rwd = torch.sum(rwd)
+                action = to_tensor(sample['action'],requires_grad=False)
 
-            action = self.actor_target.forward(state,e_index).sigmoid()
-            action = torch.sum(torch.log(action))
+            a = self.actor.forward(state,e_index).sigmoid()
+            e_pi = action*torch.log(a) + (1.-action)* torch.log(1.-a)
+            e_pi = torch.sum(e_pi)
 
-            loss += (-(action*rwd))
+            loss += (-(e_pi*rwd))
 
         loss/=len(batch)
         self._print("_train_actor loss",loss)
@@ -68,7 +71,6 @@ class sim_env_sac_gnn(sim_env):
     def format_act_to_sta_twt_idx(self, action):
         action = np.copy(action)
         twt_id = np.zeros((self.pl_model.n_sta,1))
-        action = np.random.binomial(1,action)
         for i in range(self.twt_log2_n_slot):
             twt_id += np.reshape((2**(self.twt_log2_n_slot-i-1))*action[:,i],(-1,1))
         return twt_id.T

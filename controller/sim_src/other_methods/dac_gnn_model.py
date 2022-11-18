@@ -55,7 +55,7 @@ class dac_gnn_model(base_model):
             with torch.no_grad():
                 state = to_tensor(sample['state'],requires_grad=False)
 
-            action = self.actor_target.forward(state,e_index).sigmoid()
+            action = self.actor.forward(state,e_index).sigmoid()
 
             s_a = torch.hstack((state,action))
             self._printa("_train_actor states\n",to_numpy(state).T)

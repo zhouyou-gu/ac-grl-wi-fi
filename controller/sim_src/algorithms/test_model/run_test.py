@@ -6,7 +6,7 @@ from sim_src.sim_env.sim_env import sim_env
 from sim_src.util import ParameterConfig, StatusObject
 
 
-def run_test(a,mc,log_path,ec=sim_env,DEBUG=False,EXPLORATION=False):
+def run_test(a,mc,log_path,ec=sim_env,DEBUG=False,EXPLORATION=True):
     StatusObject.DISABLE_ALL_DEBUG = not DEBUG
     ALPHA = a
     OUT_FOLDER = log_path

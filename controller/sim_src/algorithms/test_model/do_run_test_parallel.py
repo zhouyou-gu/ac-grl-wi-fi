@@ -8,7 +8,11 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 TEST_LIST = ["test_base_model.py",
              "test_complete_model.py",
              "test_infer_then_label_model.py",
-             "test_weight_drift_protection_model.py"]
+             "test_weight_drift_protection_model.py",
+             "test_weight_drift_protection_model.py",
+             "test_dac_gnn_model.py",
+             "test_sac_gnn_model.py",
+             ]
 
 CMD_LIST = []
 for t in TEST_LIST:

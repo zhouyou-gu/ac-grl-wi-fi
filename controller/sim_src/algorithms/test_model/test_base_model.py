@@ -15,7 +15,7 @@ torch.set_printoptions(linewidth=1000)
 
 model_class = base_model
 n_test = 1
-for ALPHA in [0., 1., 2., 5., 10.]:
+for ALPHA in [10., 1., 0.]:
     for i in range(n_test):
         print(model_class.__name__,ALPHA)
         run_test(ALPHA,model_class,GET_LOG_PATH_FOR_SIM_SCRIPT(__file__))

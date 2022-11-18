@@ -6,6 +6,8 @@ from time import time
 
 import numpy as np
 import torch
+def p_true(probability_of_true):
+    return np.random.choice([True, False], p=[probability_of_true, 1 - probability_of_true])
 
 USE_CUDA = torch.cuda.is_available()
 FLOAT = torch.cuda.FloatTensor if USE_CUDA else torch.FloatTensor

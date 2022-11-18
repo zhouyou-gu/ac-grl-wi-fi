@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch_geometric as pyg
 
-from torch_geometric.nn import GCNConv
+from torch_geometric.nn import GCNConv, SAGEConv
 
 HIDDEN_DIM_MULTIPLIER = 10
 
@@ -114,3 +114,49 @@ class INFNN(nn.Module):
     def forward(self, x):
         out = nn.functional.softmax(self.network(x), dim=1)
         return out
+
+
+class MPGNN(nn.Module):
+    def __init__(self, in_node_channels=5, hidden_node_channels=5, out_node_channels=1, n_layer = 3):
+        nn.Module.__init__(self)
+        assert n_layer > 1
+
+        in_dims = []
+        out_dims = []
+        for l in range(n_layer):
+            in_dims.append(hidden_node_channels)
+            out_dims.append(hidden_node_channels)
+        in_dims.append(hidden_node_channels)
+        out_dims.append(out_node_channels)
+        for i, j in enumerate(in_dims):
+            in_dims[i] = int(in_dims[i])
+        for i, j in enumerate(out_dims):
+            out_dims[i] = int(out_dims[i])
+        self.conv_list = nn.ModuleList()
+        for l in range(n_layer):
+            self.conv_list.append(SAGEConv(in_dims[l], out_dims[l]))
+
+        self.in_node_emb = nn.Sequential(
+                nn.Linear(in_node_channels, in_node_channels * HIDDEN_DIM_MULTIPLIER),
+                nn.ReLU(),
+                nn.Linear(in_node_channels * HIDDEN_DIM_MULTIPLIER, in_node_channels * HIDDEN_DIM_MULTIPLIER),
+                nn.ReLU(),
+                nn.Linear(in_node_channels * HIDDEN_DIM_MULTIPLIER, hidden_node_channels),
+                nn.ReLU(),
+            )
+
+        self.read_out = nn.Sequential(
+                    nn.Linear(hidden_node_channels + in_node_channels, (hidden_node_channels + in_node_channels) * HIDDEN_DIM_MULTIPLIER),
+                    nn.ReLU(),
+                    nn.Linear((hidden_node_channels + in_node_channels) * HIDDEN_DIM_MULTIPLIER, (hidden_node_channels + in_node_channels) * HIDDEN_DIM_MULTIPLIER),
+                    nn.ReLU(),
+                    nn.Linear((hidden_node_channels + in_node_channels) * HIDDEN_DIM_MULTIPLIER, out_node_channels),
+                )
+    def forward(self, in_x, edge_index):
+        x = self.in_node_emb.forward(in_x)
+        layer:nn.ModuleList
+        for layer in self.conv_list:
+            x = layer.forward(x, edge_index)
+
+        y = self.read_out(torch.cat((x,in_x),dim=1))
+        return y

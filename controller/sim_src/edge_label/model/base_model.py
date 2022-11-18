@@ -9,7 +9,7 @@ from torch_geometric.utils import from_networkx, to_dense_adj
 
 from sim_src.edge_label.nn import INFNN, ELNN, WGNN
 from sim_src.util import USE_CUDA, hard_update_inplace, counted, StatusObject, soft_update_inplace, to_numpy, to_tensor, \
-    to_device
+    to_device, p_true
 
 
 class learning_model(StatusObject):
@@ -25,6 +25,8 @@ class base_model(learning_model):
     CRI_LR = 0.001
     TAU = 0.01
     FAIRNESS_ALPHA = 10
+    EXPLORATION = False
+    EXPLORATION_PROB = 0.1
     def __init__(self, id, edge_dim=1, node_dim=4):
         self.id = id
         self.edge_dim = edge_dim # loss sta-y to ap-x, loss sta-x to ap-y, Pr sta-x sta-y contending
@@ -160,6 +162,14 @@ class base_model(learning_model):
             action_mat = to_dense_adj(edge_index=e_index,batch=None,edge_attr=label).view(n_node,n_node)
             action = to_numpy(action_mat)
 
+        action = self.add_noise(action)
+        return action
+    def add_noise(self,action):
+        if p_true(self.EXPLORATION_PROB):
+            action += np.random.randn(action.shape[0],action.shape[1])*0.2
+            action[action>1.] = 1.
+            action[action<0.] = 0.
+            np.fill_diagonal(action,0.)
         return action
 
     def _train_infer(self,batch):

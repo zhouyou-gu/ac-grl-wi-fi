@@ -4,7 +4,8 @@ import numpy as np
 import torch
 
 from sim_src.algorithms.test_model.run_test import run_test
-from sim_src.edge_label.model.weight_drift_protection_model import weight_drift_protection
+from sim_src.other_methods.dac_gnn_model import sim_env_gnn, dac_gnn_model
+from sim_src.other_methods.sac_gnn_model import sac_gnn_model
 from sim_src.util import GET_LOG_PATH_FOR_SIM_SCRIPT
 
 np.set_printoptions(threshold=5)
@@ -13,10 +14,10 @@ np.set_printoptions(linewidth=1000)
 torch.set_printoptions(threshold=5)
 torch.set_printoptions(linewidth=1000)
 
-model_class = weight_drift_protection
+model_class = sac_gnn_model
 n_test = 1
 for ALPHA in [10., 1., 0.]:
     for i in range(n_test):
         print(model_class.__name__,ALPHA)
-        run_test(ALPHA,model_class,GET_LOG_PATH_FOR_SIM_SCRIPT(__file__))
+        run_test(ALPHA,model_class,GET_LOG_PATH_FOR_SIM_SCRIPT(__file__),ec=sim_env_gnn,EXPLORATION=True)
         time.sleep(5)

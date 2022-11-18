@@ -6,13 +6,13 @@ from sim_src.sim_env.sim_env import sim_env
 from sim_src.util import ParameterConfig, StatusObject
 
 
-def run_test(a,mc,log_path,ec=sim_env,DEBUG=False,EXPLORATION=False):
-    StatusObject.DISABLE_ALL_DEBUG = not DEBUG
+def run_test(a,mc,model_path,log_path):
+    StatusObject.DISABLE_ALL_DEBUG = True
     ALPHA = a
     OUT_FOLDER = log_path
     model_class = mc
     ns3_path = os.path.join(expanduser("~"),"wifi-ai/ns-3-dev")
-    e = ec(id=random.randint(40,200))
+    e = sim_env(id=random.randint(40,200))
     e.PROG_PATH = ns3_path
     e.PROG_NAME = "wifi-ai/env"
     e.DEBUG = True
@@ -20,7 +20,6 @@ def run_test(a,mc,log_path,ec=sim_env,DEBUG=False,EXPLORATION=False):
     n_step = 1000
     batch_size = 1
     model = model_class(0)
-    model.EXPLORATION = EXPLORATION
     model.DEBUG_STEP = 10
     model.DEBUG = True
 

@@ -28,8 +28,6 @@ class sac_gnn_model(base_model):
 
             action = to_numpy(action)
 
-            action = np.random.binomial(1,action)
-
         if self.EXPLORATION:
             action = self.add_noise(action)
 
@@ -65,3 +63,12 @@ class sac_gnn_model(base_model):
 
     def _train_critic(self,batch):
         pass
+
+class sim_env_sac_gnn(sim_env):
+    def format_act_to_sta_twt_idx(self, action):
+        action = np.copy(action)
+        twt_id = np.zeros((self.pl_model.n_sta,1))
+        action = np.random.binomial(1,action)
+        for i in range(self.twt_log2_n_slot):
+            twt_id += np.reshape((2**(self.twt_log2_n_slot-i-1))*action[:,i],(-1,1))
+        return twt_id.T

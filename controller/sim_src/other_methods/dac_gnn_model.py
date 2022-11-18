@@ -102,8 +102,9 @@ class dac_gnn_model(base_model):
 
         return to_numpy(loss)
 
-class sim_env_gnn(sim_env):
+class sim_env_dac_gnn(sim_env):
     def format_act_to_sta_twt_idx(self, action):
+        action = np.copy(action)
         twt_id = np.zeros((self.pl_model.n_sta,1))
         action[action>0.5] = 1
         action[action<=0.5] = 0

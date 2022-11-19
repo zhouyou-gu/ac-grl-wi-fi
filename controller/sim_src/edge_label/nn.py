@@ -156,7 +156,7 @@ class MPGNN(nn.Module):
         x = self.in_node_emb.forward(in_x)
         layer:nn.ModuleList
         for layer in self.conv_list:
-            x = layer.forward(x, edge_index)
+            x = layer.forward(x, edge_index).relu()
 
         y = self.read_out(torch.cat((x,in_x),dim=1))
         return y

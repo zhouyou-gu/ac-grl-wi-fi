@@ -25,8 +25,8 @@ class sac_gnn_model(base_model):
             state = to_tensor(state_np)
 
             action = self.actor_target.forward(state,e_index).sigmoid()
-
             action = to_numpy(action)
+            action = np.clip(action, 1e-5, 1-1e-5)
             action = np.random.binomial(1,action)
 
         if self.EXPLORATION:
@@ -46,8 +46,8 @@ class sac_gnn_model(base_model):
             with torch.no_grad():
                 state = to_tensor(sample['state'],requires_grad=False)
                 rwd = to_tensor(sample['reward'])
-                rwd = self._fair_q(rwd)
-                rwd = torch.sum(rwd)
+                # rwd = self._fair_q(rwd)
+                rwd = torch.min(rwd)
                 action = to_tensor(sample['action'],requires_grad=False)
 
             a = self.actor.forward(state,e_index).sigmoid()

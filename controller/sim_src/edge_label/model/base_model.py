@@ -25,6 +25,7 @@ class base_model(learning_model):
     CRI_LR = 0.001
     TAU = 0.01
     FAIRNESS_ALPHA = 10
+    MAX_FAIR_ALPHA = 10
     EXPLORATION = False
     EXPLORATION_PROB = 0.1
     def __init__(self, id, edge_dim=1, node_dim=4):
@@ -126,8 +127,12 @@ class base_model(learning_model):
         self._printa("_fair_q qraw",q.transpose(0,1))
         if self.FAIRNESS_ALPHA == 1:
             q = torch.log(q)
+            q = torch.mean(q,dim=1,keepdim=True)
+        elif self.FAIRNESS_ALPHA > self.MAX_FAIR_ALPHA:
+            q, _ = torch.min(q,dim=1,keepdim=True)
         else:
             q = torch.pow(q,1-self.FAIRNESS_ALPHA)/(1-self.FAIRNESS_ALPHA)
+            q = torch.mean(q,dim=1,keepdim=True)
         self._printa("_fair_q fair",q.transpose(0,1))
         return q
     def setup_infer(self):

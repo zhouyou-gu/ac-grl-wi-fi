@@ -20,7 +20,18 @@ TEST_LIST = ["test_base_model.py",
 def load_res_dir_data(dir,cls_name,key,postfix):
     d_name = "%s.%s.%s.txt" % (cls_name,key,postfix)
     d_file = os.path.join(dir,d_name)
-    return np.loadtxt(d_file,delimiter=',')
+    if os.path.isfile(d_file):
+        return np.loadtxt(d_file,delimiter=',')
+
+    d_name = "%s_dac_gnn.%s.%s.txt" % (cls_name,key,postfix)
+    d_file = os.path.join(dir,d_name)
+    if os.path.isfile(d_file):
+        return np.loadtxt(d_file,delimiter=',')
+
+    d_name = "%s_sac_gnn.%s.%s.txt" % (cls_name,key,postfix)
+    d_file = os.path.join(dir,d_name)
+    if os.path.isfile(d_file):
+        return np.loadtxt(d_file,delimiter=',')
 
 def load_res_dir_parm(dir,cls_name,postfix):
     d_name = "%s.%s.txt" % (cls_name,postfix)
@@ -57,8 +68,10 @@ def get_mean_rate(data,a,m_avg = 50):
     res = np.convolve(res, np.ones(m_avg)/m_avg, mode='same')
     return res
 
-ALL_ALPHA = [0, 1, 2, 5, 10]
+ALL_ALPHA = [10]
 N_STEP = 1000
+
+
 for t in TEST_LIST:
     DIR = os.path.splitext(t)[0]
     DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), DIR)
@@ -74,19 +87,17 @@ for t in TEST_LIST:
         ax.set_xlim([0, N_STEP])
         ax.set_ylim([0, 1])
         for dir in ALL_DIR:
-            data = load_res_dir_data(os.path.join(DIR_PATH,dir),"sim_env","reward",N_STEP-1)
             print(dir)
             alpha = load_res_dir_parm(os.path.join(DIR_PATH,dir),"sim_config","NaN")
             alpha = int(alpha[1])
             print(alpha)
             if alpha == a:
+                data = load_res_dir_data(os.path.join(DIR_PATH,dir),"sim_env","reward",N_STEP-1)
                 res = get_uf_value(data[:,3:],a)
                 plt.plot(data[:,1], res, label=dir)
         plt.legend(bbox_to_anchor=(1.01, 1), loc="upper left")
         fig.savefig(os.path.join(DIR_PATH,FIG_NAME))
 
-ALL_ALPHA = [0, 1, 2, 5, 10]
-N_STEP = 1000
 for t in TEST_LIST:
     DIR = os.path.splitext(t)[0]
     DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), DIR)
@@ -102,20 +113,17 @@ for t in TEST_LIST:
         ax.set_xlim([0, N_STEP])
         ax.set_ylim([0, 0.2])
         for dir in ALL_DIR:
-            data = load_res_dir_data(os.path.join(DIR_PATH,dir),"sim_env","reward",N_STEP-1)
             print(dir)
             alpha = load_res_dir_parm(os.path.join(DIR_PATH,dir),"sim_config","NaN")
             alpha = int(alpha[1])
             print(alpha)
             if alpha == a:
+                data = load_res_dir_data(os.path.join(DIR_PATH,dir),"sim_env","reward",N_STEP-1)
                 res = get_min_rate(data[:,3:],a)
                 plt.plot(data[:,1], res, label=dir)
         plt.legend(bbox_to_anchor=(1.01, 1), loc="upper left")
         fig.savefig(os.path.join(DIR_PATH,FIG_NAME))
 
-
-ALL_ALPHA = [0, 1, 2, 5, 10]
-N_STEP = 1000
 for t in TEST_LIST:
     DIR = os.path.splitext(t)[0]
     DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), DIR)
@@ -131,19 +139,17 @@ for t in TEST_LIST:
         ax.set_xlim([0, N_STEP])
         ax.set_ylim([0, 0.02])
         for dir in ALL_DIR:
-            data = load_res_dir_data(os.path.join(DIR_PATH,dir),"sim_env","reward",N_STEP-1)
             print(dir)
             alpha = load_res_dir_parm(os.path.join(DIR_PATH,dir),"sim_config","NaN")
             alpha = int(alpha[1])
             print(alpha)
             if alpha == a:
+                data = load_res_dir_data(os.path.join(DIR_PATH,dir),"sim_env","reward",N_STEP-1)
                 res = get_op(data[:,3:],a)
                 plt.plot(data[:,1], res, label=dir)
         plt.legend(bbox_to_anchor=(1.01, 1), loc="upper left")
         fig.savefig(os.path.join(DIR_PATH,FIG_NAME))
 
-ALL_ALPHA = [0, 1, 2, 5, 10]
-N_STEP = 1000
 for t in TEST_LIST:
     DIR = os.path.splitext(t)[0]
     DIR_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), DIR)
@@ -159,12 +165,12 @@ for t in TEST_LIST:
         ax.set_xlim([0, N_STEP])
         ax.set_ylim([0, 0.5])
         for dir in ALL_DIR:
-            data = load_res_dir_data(os.path.join(DIR_PATH,dir),"sim_env","reward",N_STEP-1)
             print(dir)
             alpha = load_res_dir_parm(os.path.join(DIR_PATH,dir),"sim_config","NaN")
             alpha = int(alpha[1])
             print(alpha)
             if alpha == a:
+                data = load_res_dir_data(os.path.join(DIR_PATH,dir),"sim_env","reward",N_STEP-1)
                 res = get_mean_rate(data[:,3:],a)
                 plt.plot(data[:,1], res, label=dir)
         plt.legend(bbox_to_anchor=(1.01, 1), loc="upper left")

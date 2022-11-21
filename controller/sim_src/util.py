@@ -1,3 +1,4 @@
+import math
 import os
 from datetime import datetime
 import pprint
@@ -8,6 +9,12 @@ import numpy as np
 import torch
 def p_true(probability_of_true):
     return np.random.choice([True, False], p=[probability_of_true, 1 - probability_of_true])
+
+def DbToRatio(a):
+    return 10.0**(0.1 * a)
+
+def RatioToDb(a):
+    return 10.0 * math.log10(a)
 
 USE_CUDA = torch.cuda.is_available()
 FLOAT = torch.cuda.FloatTensor if USE_CUDA else torch.FloatTensor

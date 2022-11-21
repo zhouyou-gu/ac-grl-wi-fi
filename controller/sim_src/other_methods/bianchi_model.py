@@ -1,197 +1,160 @@
+import math
+
 import networkx as nx
 import numpy as np
 
+from sim_src.sim_env.path_loss import path_loss
+from sim_src.sim_env.sim_env import sim_env
+from sim_src.util import DbToRatio, StatusObject
 
-class bianchi_model():
-    W = 32
-    M = 3
 
-    def __init__(self, con_adj_m):
-        self.con_adj_m = con_adj_m
-        self.graph = nx.from_numpy_matrix(self.con_adj_m)
-        self.N = self.graph.number_of_nodes()
-        self.tau = np.ones(self.N)*0.5
-        self.p_collision = np.ones(self.N)*0.5
-
-        self.tau_next = np.ones(self.N)*0.5
-        self.p_collision_next = np.ones(self.N)*0.5
-
+class bianchi_model(StatusObject):
+    W = 15
+    M = 6
+    PACKET_SIZE = 100
+    NOISE_FLOOR_1MHZ_DBM = -93.9763
+    N_GROUP = 4
+    def __init__(self, id,global_allocation=False):
+        self.id = id
+        self.global_allocation = global_allocation
 
     @staticmethod
-    def p_collision_to_tau(p):
+    def tau_to_pcol(tau,n):
+        p = 1 - (1-tau)**(n-1)
+        return p
+
+    @staticmethod
+    def pcol_to_tau(p):
         nu = 2.
         do_a = np.sum([(2.*p)**m for m in range(bianchi_model.M)])
         do = (1 + bianchi_model.W) + p*bianchi_model.W*do_a
         return nu/(do)
+    @staticmethod
+    def get_tau(n):
+        N_STEP = 100
+        D_STEP = 1./N_STEP
+        dif = np.inf
+        min_tau = 0.
+        for i in range(N_STEP+1):
+            tau = D_STEP*i
+            pp = bianchi_model.tau_to_pcol(tau,n)
+            tau_tmp = bianchi_model.pcol_to_tau(pp)
+            d = abs(tau_tmp - tau)
+            if d <= dif:
+                min_tau = tau
+                dif = d
+        return min_tau
+    @staticmethod
+    def tau_to_ptra(tau,n):
+        if n == 0:
+            return 1.
+        return 1 - (1-tau)**n
 
     @staticmethod
-    def p_collision_to_tau_do(p):
-        do_a = np.sum([(2.*p)**m for m in range(bianchi_model.M)])
-        do = (1 + bianchi_model.W) + p*bianchi_model.W*do_a
-        return do
+    def tau_to_psuc(tau,n):
+        if n == 0:
+            return 0.
 
-    def update_p_collision(self):
-        for n in range(self.N):
-            neighbour = list(self.graph.neighbors(n))
-            # print(neighbour.__len__())
-            # print(self.tau[neighbour])
-            tmp = 1.-self.tau[neighbour]
-            self.p_collision_next[n] = 1 - np.prod(tmp)
+        nu = n * tau * (1-tau)**(n-1)
+        do = 1 - (1-tau)**n
+        return nu/do
 
-    def update_tau(self):
-        for n in range(self.N):
-            self.tau_next[n] = bianchi_model.p_collision_to_tau(self.p_collision[n])
+    @staticmethod
+    def tau_to_rate(tau,n,t_packet):
+        nu = bianchi_model.tau_to_ptra(tau,n) * bianchi_model.tau_to_psuc(tau,n)
+        do = (1-bianchi_model.tau_to_ptra(tau,n)) + bianchi_model.tau_to_ptra(tau,n)*t_packet
+        return nu/do
 
-    def update_cur(self,i):
-        nn = i % self.N
-        self.tau[nn] = self.tau_next[nn]
-        self.p_collision[nn] = self.p_collision_next[nn]
-    #
-    def iter(self, n_iter):
-        for i in range(n_iter):
-            print('----')
-            print("tau", self.tau)
-            print("p_c", self.p_collision)
-            self.update_p_collision()
-            self.update_tau()
-            self.update_cur(i)
-            print("tau", self.tau)
-            print("p_c", self.p_collision)
+    def gen_action(self,states):
+        if self.global_allocation:
+            return self.gen_action_global(states)
+        else:
+            return self.gen_action_per_ap(states)
 
-    def get_Jacobian(self):
-        J = np.zeros((2*self.N,2*self.N))
-        for i in range(self.N):
-            # df/dp_i
-            J[i,i] = -1.
+    def gen_action_global(self, states):
+        self.states = states
+        self.n_ap = states.shape[1]
+        self.n_sta = states.shape[0]
 
-            # # dg/dp_i
-            # tmp_do = bianchi_model.W * np.sum([(m+1)*(2.*self.p_collision[i])**m for m in range(bianchi_model.M)])
-            # J[i,i+self.N] = - 2 * 1 / (bianchi_model.p_collision_to_tau_do(self.p_collision[i])**2) * tmp_do
+        sta_slot_id = np.zeros(self.n_sta)
+        grouping_decision = [[] for i in range(self.N_GROUP)]
+        sta_a = []
+        u_group = np.ones(self.N_GROUP)*np.inf
+        for s in range(self.n_sta):
+                sta_a.append(s)
+        while sta_a:
+            ui = np.argmax(u_group)
+            rate_list = np.zeros(len(sta_a))
+            for si in range(len(sta_a)):
+                s = sta_a[si]
+                t_packet = self.get_t_packet(grouping_decision[ui],s)
+                nn = len(sta_a)+1
+                tau = bianchi_model.get_tau(nn)
+                rate = bianchi_model.tau_to_rate(tau,nn,t_packet)
+                rate_list[si] = rate
+            si = np.argmax(rate_list)
+            grouping_decision[ui].append(sta_a[si])
+            sta_a.pop(si)
+            u_group[ui] = rate_list[si]
 
-        # for i in range(self.N):
-        #     # df/dtau_i
-        #     neighbour = list(self.graph.neighbors(i))
-        #     for j in neighbour:
-        #         tmp = 1.-self.tau[neighbour]
-        #         tmp = np.prod(tmp)/(1-self.tau[j])
-        #         J[i+self.N,j] = tmp
-        #
-        #     # dg/dtau_i
-        #     J[i+self.N,i+self.N] = -1.
+        for g in range(self.N_GROUP):
+            for gg in grouping_decision[g]:
+                sta_slot_id[gg] = g
 
-        return J
+        return sta_slot_id
 
-    def get_Jacobian_2(self):
-        J = np.zeros((2*self.N,2*self.N))
-        for i in range(self.N):
-            # df/dp_i
-            neighbour = list(self.graph.neighbors(i))
-            tmp = 1. - self.tau[neighbour]
-            tmp = 1. - np.prod(tmp)
-            J[i,i] = -tmp/(self.p_collision[i]**2)
+    def gen_action_per_ap(self, states):
+        self.states = states
+        self.n_ap = states.shape[1]
+        self.n_sta = states.shape[0]
 
-            # dg/dp_i
-            tmp_do = bianchi_model.W * np.sum([(m+1)*(2.*self.p_collision[i])**m for m in range(bianchi_model.M)])
-            J[i,i+self.N] = - 2 * 1 / (bianchi_model.p_collision_to_tau_do(self.p_collision[i])**2) * tmp_do / self.tau[i]
+        sta_slot_id = np.zeros(self.n_sta)
+        max_a = np.argmax(self.states,axis=1)
+        for a in range(self.n_ap):
+            grouping_decision = [[] for i in range(self.N_GROUP)]
+            sta_a = []
+            u_group = np.ones(self.N_GROUP)*np.inf
+            for s in range(self.n_sta):
+                if max_a[s] == a:
+                    sta_a.append(s)
+            while sta_a:
+                ui = np.argmax(u_group)
+                rate_list = np.zeros(len(sta_a))
+                for si in range(len(sta_a)):
+                    s = sta_a[si]
+                    t_packet = self.get_t_packet(grouping_decision[ui],s)
+                    nn = len(sta_a)+1
+                    tau = bianchi_model.get_tau(nn)
+                    rate = bianchi_model.tau_to_rate(tau,nn,t_packet)
+                    rate_list[si] = rate
+                si = np.argmax(rate_list)
+                grouping_decision[ui].append(sta_a[si])
+                sta_a.pop(si)
+                u_group[ui] = rate_list[si]
 
-        # for i in range(self.N):
-        #     # df/dtau_i
-        #     neighbour = list(self.graph.neighbors(i))
-        #     for j in neighbour:
-        #         tmp = 1.-self.tau[neighbour]
-        #         tmp = np.prod(tmp)/(1-self.tau[j])
-        #         J[i+self.N,j] = tmp/self.p_collision[j]
-        #
-        #     # dg/dtau_i
-        #     J[i+self.N,i+self.N] = -bianchi_model.p_collision_to_tau(self.p_collision[i])/ (self.tau[i]**2)
+            for g in range(self.N_GROUP):
+                for gg in grouping_decision[g]:
+                    sta_slot_id[gg] = g
 
-        return J
+        return sta_slot_id
 
+    def get_t_packet(self,sta_list,ss):
+        t_packet = 0.
+        n_s = 0.
+        max_g = np.max(self.states,axis=1)
+        for s in sta_list:
+            t_packet += self.PACKET_SIZE*8/math.log2(1+DbToRatio(-max_g[s]-self.NOISE_FLOOR_1MHZ_DBM))/1e6
+            n_s += 1
 
+        t_packet += self.PACKET_SIZE*8/math.log2(1+DbToRatio(-max_g[ss]-self.NOISE_FLOOR_1MHZ_DBM))/1e6
+        n_s += 1
 
-    def iter_Jaco(self, I, p = None):
-        if p is not None:
-            self.p_collision = np.ones(self.N)*p
-            self.tau = np.ones(self.N) * bianchi_model.p_collision_to_tau(p)
+        t_packet /= n_s
+        return t_packet
 
-        for it in range(I):
-            f= np.zeros(self.N)
-            g= np.zeros(self.N)
-            for i in range(self.N):
-                neighbour = list(self.graph.neighbors(i))
-                tmp = 1.-self.tau[neighbour]
-                f[i] = 1 - self.p_collision[i] - np.prod(tmp)
-
-                g[i] = - self.tau[i] + bianchi_model.p_collision_to_tau(self.p_collision[i])
-
-            J = self.get_Jacobian()
-            # J_inv = np.linalg.inv(J)
-
-            x_cur = np.hstack((self.p_collision,self.tau))
-            F_cur = np.hstack((f,g))
-            s = np.linalg.solve(J[0:self.N,0:self.N], -F_cur[0:self.N])
-            x_nxt = x_cur[0:self.N] + s
-            # if int(it/10) % 2 ==0:
-            #     self.p_collision = x_nxt[0:self.N]
-            #     self.p_collision[self.p_collision>1.] = 1.-1e-5
-            #     self.p_collision[self.p_collision<0.] = 0.+1e-5
-            # else:
-            #     self.tau = x_nxt[self.N:2*self.N]
-            #     self.tau[self.tau>1.] = 1.-1e-5
-            #     self.tau[self.tau<0.] = 0.+1e-5
-            # nn = it % self.N
-            self.p_collision = x_nxt
-            self.p_collision[self.p_collision>1.] = 1.-1e-5
-            self.p_collision[self.p_collision<0.] = 0.+1e-5
-
-            for n in range(self.N):
-                self.tau[n] = bianchi_model.p_collision_to_tau(self.p_collision[n])
-
-            # self.tau[nn] = x_nxt[nn+self.N]
-            # self.tau[self.tau>1.] = 1.-1e-5
-            # self.tau[self.tau<0.] = 0.+1e-5
-
-            self.update_tau()
-            self.update_p_collision()
-            print('----',it)
-
-            print("p_c", self.p_collision)
-            print("p_c", self.p_collision_next)
-            print("tau", self.tau)
-            print("tau", self.tau_next)
-            print("F_cur", F_cur)
-            print("x_cur", x_cur)
-            # print("J", J)
-            # print("J_inv", J_inv)
-            print("s", s)
-            # print("F_cur", self.p_collision)
-
-
-    def test(self):
-        for i in range(100):
-            p = i*1e-2
-            self.p_collision = np.ones(self.N)*p
-            self.tau = np.ones(self.N) * bianchi_model.p_collision_to_tau(p)
-
-            self.update_p_collision()
-            self.update_tau()
-            print('----',p)
-            print("tau", self.tau)
-            print("tau", self.tau_next)
-            print("p_c", self.p_collision)
-            print("p_c", self.p_collision_next)
-
-    def test_p(self, p):
-        self.p_collision = np.ones(self.N)*p
-        self.tau = np.ones(self.N) * bianchi_model.p_collision_to_tau(p)
-
-        self.update_p_collision()
-        self.update_tau()
-        print('----',p)
-        print("tau", self.tau)
-        print("tau", self.tau_next)
-        print("p_c", self.p_collision)
-        print("p_c", self.p_collision_next)
+class sim_env_bianchi_model(sim_env):
+    def format_act_to_sta_twt_idx(self,action):
+        return action
 
 
 
@@ -200,14 +163,9 @@ if __name__ == '__main__':
     np.set_printoptions(threshold=np.inf)
     np.set_printoptions(linewidth=np.inf)
     # G = nx.complete_graph(10)
-    G = nx.dorogovtsev_goltsev_mendes_graph(3)
-    adj_m = nx.adjacency_matrix(G).todense()
-    print(adj_m)
-    m = bianchi_model(adj_m)
-    # m.test()
-    # m.test_p(0.60171571)
-    # m.iter(10000)
-    m.iter_Jaco(100)
-    # m.iter_Jaco(10000)
-    nx.draw(G)
-    plt.show()
+    pl_model = path_loss(n_sta=20)
+    states = pl_model.get_loss_sta_ap()
+    bm = bianchi_model(0,global_allocation=True)
+    print(bm.gen_action(states))
+    bm = bianchi_model(0,global_allocation=False)
+    print(bm.gen_action(states))

@@ -12,6 +12,7 @@ TEST_LIST = ["test_base_model.py",
              "test_complete_model.py",
              "test_infer_then_label_model.py",
              "test_weight_drift_protection_model.py",
+             "test_min_fair_model.py",
              "test_dac_gnn_model.py",
              "test_sac_gnn_model.py",
              ]
@@ -50,7 +51,7 @@ def get_uf_value(data,a,m_avg = 50):
     res = np.convolve(res, np.ones(m_avg)/m_avg, mode='same')
     return res
 
-def get_min_rate(data,a,m_avg = 50):
+def get_min_rate(data,a,m_avg = 100):
     res = np.min(data,axis=1)
     res = np.convolve(res, np.ones(m_avg)/m_avg, mode='same')
     return res
@@ -68,7 +69,7 @@ def get_mean_rate(data,a,m_avg = 50):
     res = np.convolve(res, np.ones(m_avg)/m_avg, mode='same')
     return res
 
-ALL_ALPHA = [10]
+ALL_ALPHA = [10,100]
 N_STEP = 1000
 
 

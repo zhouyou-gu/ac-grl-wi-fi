@@ -39,8 +39,9 @@ class complete_model(infer_then_label):
             self._printa("_train_actor sapair\n",to_numpy(s_a).T)
             self._printa("_train_actor minlos\n",to_numpy(torch.hstack((min_path_loss[e_index[0,:]],min_path_loss[e_index[1,:]]))).T)
 
-            q = self.critic_target.forward(x,e_index,s_a)
-            q = self._fair_q(q)
+            qq = self.critic_target.forward(x,e_index,s_a)
+            qq.retain_grad()
+            q = self._fair_q(qq)
             q = -torch.mean(q)
             q.backward()
             lable_g = label.grad.detach()
@@ -48,6 +49,7 @@ class complete_model(infer_then_label):
             scale[lable_g>0.] = 1. - scale[lable_g>0.]
             label_differentiable = self.actor.forward(actor_input)
             loss += (-torch.mean((lable_g*scale)*label_differentiable))
+            self._printa("_train_actor qq.grad\n",to_numpy(qq.grad).T)
             self._printa("_train_actor label.grad\n",to_numpy(label.grad).T)
             self._printa("_train_actor lable_g\n",to_numpy(lable_g).T)
             self._printa("_train_actor scale\n",to_numpy(scale).T)

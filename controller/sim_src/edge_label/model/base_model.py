@@ -128,7 +128,7 @@ class base_model(learning_model):
         if self.FAIRNESS_ALPHA == 1:
             q = torch.log(q)
             q = torch.mean(q,dim=0,keepdim=True)
-            # q = torch.exp(q)
+            q = torch.exp(q)
             self._printa("_fair_q fair pf",q.transpose(0,1))
         elif self.FAIRNESS_ALPHA > self.MAX_FAIR_ALPHA:
             q, _ = torch.min(q,dim=0,keepdim=True)
@@ -136,7 +136,7 @@ class base_model(learning_model):
         else:
             q = torch.pow(q,1-self.FAIRNESS_ALPHA)/(1-self.FAIRNESS_ALPHA)
             q = torch.mean(q,dim=0,keepdim=True)
-            # q = torch.pow(q*(1-self.FAIRNESS_ALPHA),1/(1-self.FAIRNESS_ALPHA))
+            q = torch.pow(q*(1-self.FAIRNESS_ALPHA),1/(1-self.FAIRNESS_ALPHA))
             self._printa("_fair_q fair",self.FAIRNESS_ALPHA,q.transpose(0,1))
         return q
     def setup_infer(self):

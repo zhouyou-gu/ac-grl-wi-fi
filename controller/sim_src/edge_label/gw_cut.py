@@ -31,6 +31,24 @@ class gw_cut():
 
         return cut_results, cost_results
 
+    def get_best_solution(self, num_trials=1):
+        u, s, v = np.linalg.svd(self.X.value)
+        U = u * np.sqrt(s)
+
+        cut_results = []
+        cost_results = []
+        for i in range(num_trials):
+            r = np.random.randn(self.n_nodes)
+            r = r / np.linalg.norm(r)
+            cut = np.sign(r @ U.T)
+            cut_results.append(cut)
+            a, b = gw_cut.split(cut)
+            cost_results.append(gw_cut.cut_cost(a,b,self.H))
+
+        max_value = max(cost_results)
+        i = cost_results.index(max_value)
+        return cut_results[i], cost_results[i]
+
     def set_edge_weights(self, H):
         self.H = H
         self.L = - H
@@ -79,8 +97,8 @@ def cut_into_2_k_recur(W,n_node,lvl,total_lvl,node_idx):
     cutter = gw_cut(len(node_idx))
     cutter.set_edge_weights(W[np.ix_(node_idx,node_idx)])
     cutter.solve()
-    s, c = cutter.get_m_solutions(1)
-    a, b = gw_cut.split(s[0])
+    s, c = cutter.get_best_solution(10)
+    a, b = gw_cut.split(s)
     a_ind = [node_idx[i] for i in a]
     ret[a_ind] += 2**(total_lvl-lvl-1)
     ret += cut_into_2_k_recur(W,n_node,lvl+1,total_lvl,a_ind)
@@ -99,6 +117,7 @@ if __name__ == '__main__':
     def gen_rand_H(n):
         ret = np.random.randn(n,n)
         ret = ret * ret
+        ret += 100
         for i in range(n):
             ret[i,i] = 0.
             for j in range(i+1,n):
@@ -115,3 +134,8 @@ if __name__ == '__main__':
     s, c = o.get_m_solutions(m_solutions)
     print(s)
     print(c)
+    s, c = o.get_best_solution(m_solutions)
+    print(s)
+    print(c)
+    print(cut_into_2_k(H,n,2))
+    print(H)

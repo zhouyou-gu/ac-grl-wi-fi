@@ -181,6 +181,50 @@ class sim_env(sim_env_to_controller_interface):
         return 20
 
 
+class sim_env_online(sim_env):
+    def __init__(self, id = 0):
+        sim_env.__init__(self,id)
+        self.pl_model = path_loss(n_sta=self.get_n_sta())
+        self.loss_sta_sta = self.pl_model.get_loss_sta_sta(noise=True)
+    def init_env(self):
+        cfg = wifi_net_config()
+        cfg.PROG_PATH = self.PROG_PATH
+        cfg.PROG_NAME = self.PROG_NAME
+        cfg.PROG_PORT = 0
+        cfg.PROG_SEED = (self.N_STEP % 1000) + 5000
+        cfg.PROG_TIME = self.ns3_sim_time_s
+
+        cfg.id = self.id
+        cfg.n_ap = self.pl_model.n_ap
+        cfg.n_sta = self.pl_model.n_sta
+
+        cfg.app_packet_interval = self.app_packet_interval
+        cfg.app_packet_size = self.app_packet_size
+
+        cfg.loss_ap_ap = self.pl_model.get_loss_ap_ap()
+        cfg.loss_sta_ap = self.pl_model.get_loss_sta_ap()
+        cfg.loss_sta_sta = self.loss_sta_sta
+
+        state = self.pl_model.convert_loss_sta_ap_threshold(cfg.loss_sta_ap)
+        # state = cfg.loss_sta_ap
+        state = self.formate_np_state(state)
+        action = self.gen_action(state)
+        # print(action)
+        twt_cfg = self.formate_np_action(action)
+
+        cfg.twtstarttime = twt_cfg['twtstarttime']
+        cfg.twtoffset = twt_cfg['twtoffset']
+        cfg.twtduration = twt_cfg['twtduration']
+        cfg.twtperiodicity = twt_cfg['twtperiodicity']
+
+        self.ns3_env = sim_wifi_net(self.id)
+        self.ns3_env.set_config(cfg)
+
+        self.sample = {}
+        self.sample['state'] = state
+        self.sample['target'] = self.pl_model.convert_loss_sta_sta_binary(cfg.loss_sta_sta)
+        self.sample['action'] = action
+        self.sample['n_node'] = self.pl_model.n_sta
 
 
 

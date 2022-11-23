@@ -11,6 +11,7 @@ TEST_LIST = [
                 "test_infer_then_label_model.py",
                 "test_weight_drift_protection_model.py",
                 "test_min_fair_model.py",
+                "test_itl_mmf.py"
              ]
 
 CMD_LIST = []

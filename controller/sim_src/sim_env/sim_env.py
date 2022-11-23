@@ -31,7 +31,7 @@ class sim_env(sim_env_to_controller_interface):
     TWT_START_TIME = 10000000
     TWT_ASLOT_TIME = 10000
 
-    def __init__(self, id=0, ns3_sim_time_s=5., app_packet_interval=20000, mac_packet_size=100, twt_log2_n_slot = 2):
+    def __init__(self, id=0, ns3_sim_time_s=5., app_packet_interval=20000, mac_packet_size=100, twt_log2_n_slot = 2, noise=False):
         self.id = id
         self.ns3_sim_time_s = ns3_sim_time_s
         self.app_packet_interval = app_packet_interval
@@ -40,6 +40,8 @@ class sim_env(sim_env_to_controller_interface):
         self.mac_packet_size = mac_packet_size
         self.twt_log2_n_slot = twt_log2_n_slot
 
+        self.noise = noise
+
         self.memory = None
         self.pl_model:path_loss = None
         self.ns3_env:sim_wifi_net = None
@@ -47,10 +49,8 @@ class sim_env(sim_env_to_controller_interface):
 
 
     def init_env(self):
-        self.sample = {}
 
         self.pl_model = path_loss(n_sta=self.get_n_sta())
-        self.ns3_env = sim_wifi_net(self.id)
 
         cfg = wifi_net_config()
         cfg.PROG_PATH = self.PROG_PATH
@@ -68,7 +68,7 @@ class sim_env(sim_env_to_controller_interface):
 
         cfg.loss_ap_ap = self.pl_model.get_loss_ap_ap()
         cfg.loss_sta_ap = self.pl_model.get_loss_sta_ap()
-        cfg.loss_sta_sta = self.pl_model.get_loss_sta_sta()
+        cfg.loss_sta_sta = self.pl_model.get_loss_sta_sta(self.noise)
 
         state = self.pl_model.convert_loss_sta_ap_threshold(cfg.loss_sta_ap)
         # state = cfg.loss_sta_ap
@@ -82,8 +82,10 @@ class sim_env(sim_env_to_controller_interface):
         cfg.twtduration = twt_cfg['twtduration']
         cfg.twtperiodicity = twt_cfg['twtperiodicity']
 
+        self.ns3_env = sim_wifi_net(self.id)
         self.ns3_env.set_config(cfg)
 
+        self.sample = {}
         self.sample['state'] = state
         self.sample['target'] = self.pl_model.convert_loss_sta_sta_binary(cfg.loss_sta_sta)
         self.sample['action'] = action
@@ -177,6 +179,10 @@ class sim_env(sim_env_to_controller_interface):
 
     def get_n_sta(self):
         return 20
+
+
+
+
 
 if __name__ == '__main__':
     build_ns3("/home/soyo/wifi-ai/ns-3-dev")

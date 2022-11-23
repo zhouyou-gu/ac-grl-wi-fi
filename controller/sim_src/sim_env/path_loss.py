@@ -7,7 +7,7 @@ class path_loss():
     PI = 3.14159265358979323846
     HIDDEN_LOSS = 200.
     NOISE_FLOOR_1MHZ_DBM = -93.9763
-    def __init__(self, n_ap = 4, n_sta = 10,range = 1000., fre_Hz = 1e9, txp_dbm = 0., min_rssi_dbm = -95, shadowing_sigma = 0):
+    def __init__(self, n_ap = 4, n_sta = 10,range = 1000., fre_Hz = 1e9, txp_dbm = 0., min_rssi_dbm = -95, shadowing_sigma = 5):
         self.memory = None
         self.model = None
 
@@ -42,13 +42,14 @@ class path_loss():
                 ret[i,j] = self._get_loss_between_locs(self.sta_locs[i],self.ap_locs[j])
         return ret
 
-    def get_loss_sta_sta(self):
+    def get_loss_sta_sta(self,noise=False):
         ret = np.zeros((self.n_sta,self.n_sta))
         for i in range(self.n_sta):
-            for j in range(self.n_sta):
+            for j in range(i,self.n_sta):
                 if i == j:
                     continue
-                ret[i,j] = self._get_loss_between_locs(self.sta_locs[i],self.sta_locs[j])
+                ret[i,j] = self._get_loss_between_locs(self.sta_locs[i],self.sta_locs[j],noise=noise)
+                ret[j,i] = ret[i,j]
         return ret
 
     def _config_ap_locs(self):
@@ -70,14 +71,16 @@ class path_loss():
         y = np.random.uniform(-self.range, self.range)
         return (x,y)
 
-    def _get_loss_between_locs(self, a, b):
+    def _get_loss_between_locs(self, a, b, noise=False):
         dis = np.linalg.norm(np.array(a)-np.array(b),ord=2)
-        return self._get_loss_distance(dis)
+        return self._get_loss_distance(dis, noise)
 
-    def _get_loss_distance(self, dis):
+    def _get_loss_distance(self, dis, noise=False):
         numerator = self.lam ** 2
         denominator = 16 * (self.PI ** 2) * ((dis + 1e-5) ** 2)
-        loss = - 10. * math.log10(numerator / denominator) + np.random.randn() * self.shadowing_sigma
+        loss = - 10. * math.log10(numerator / denominator)
+        if noise:
+            loss += np.random.randn() * self.shadowing_sigma
         loss = np.max((loss,0))
         return loss
 

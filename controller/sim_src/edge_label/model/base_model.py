@@ -69,7 +69,7 @@ class base_model(learning_model):
         if not path_target:
             path_target = path
         self.infer = self._load(path)
-        self.actor_target = self._load(path_target)
+        self.infer_target = self._load(path_target)
 
     def load_actor(self, path, path_target = None):
         if not path_target:

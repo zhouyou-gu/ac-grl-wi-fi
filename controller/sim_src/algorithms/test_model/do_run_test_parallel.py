@@ -7,11 +7,10 @@ CTRL_PATH = os.path.join(expanduser("~"),"wifi-ai/controller")
 PATH = os.path.dirname(os.path.realpath(__file__))
 TEST_LIST = [
                 "test_base_model.py",
-                "test_base_model.py",
                 "test_complete_model.py",
                 "test_infer_then_label_model.py",
+                "test_weight_drift_protection_model.py",
                 "test_min_fair_model.py",
-                "test_min_fair_model.py"
              ]
 
 CMD_LIST = []
@@ -24,11 +23,11 @@ for t in TEST_LIST:
 def run_cmd(cmd):
     os.system(cmd)
 
-n_test = 5
+n_test = 10
 p_list = []
 for cmd in CMD_LIST:
-    print(cmd)
     for n in range(n_test):
+        print(cmd)
         p = Process(target=run_cmd, args=(cmd,))
         p_list.append(p)
 

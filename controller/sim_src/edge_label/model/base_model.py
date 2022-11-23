@@ -71,17 +71,23 @@ class base_model(learning_model):
         self.infer = self._load(path)
         self.infer_target = self._load(path_target)
 
+        self.infer_optim = optim.Adam(self.infer.parameters(), lr=self.INF_LR)
+
     def load_actor(self, path, path_target = None):
         if not path_target:
             path_target = path
         self.actor = self._load(path)
         self.actor_target = self._load(path_target)
 
+        self.actor_optim = optim.Adam(self.actor.parameters(), lr=self.ACT_LR)
+
     def load_critic(self, path, path_target = None):
         if not path_target:
             path_target = path
         self.critic = self._load(path)
         self.critic_target = self._load(path_target)
+
+        self.critic_optim = optim.Adam(self.critic.parameters(), lr=self.CRI_LR)
 
     def _load(self, path):
         if USE_CUDA:

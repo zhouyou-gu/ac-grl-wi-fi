@@ -78,9 +78,8 @@ class infer_then_label(base_model):
             target = nn.functional.one_hot(target.long(), num_classes=2).float()
             result = self.infer.forward(state)
 
-            self._print("_train_infer diff",torch.hstack((target,result,state)).transpose(0,1)[:,0])
-
-            loss += nn.functional.cross_entropy(result,target)
+            self._printa("_train_infer diff",torch.hstack((target,result,state)).transpose(0,1)[:,0])
+            loss += nn.functional.cross_entropy(torch.log(result),target)
 
         loss/=len(batch)
         self._print("_train_infer loss",loss)
@@ -99,7 +98,7 @@ class infer_then_label(base_model):
             with torch.no_grad():
                 state = to_tensor(sample['state'],requires_grad=False)
                 state = torch.hstack((state[e_index[0,:]],state[e_index[1,:]]))
-                result = self.infer.forward(state)
+                result = self.infer_target.forward(state)
                 p_contention = result[:,1:2]
 
                 state = to_tensor(sample['state'],requires_grad=False)
@@ -116,7 +115,9 @@ class infer_then_label(base_model):
                 asso = torch.eq(min_path_loss_idx[e_index[0,:]], min_path_loss_idx[e_index[1,:]] ).float()
                 actor_input = torch.hstack((asso,interference_and_min_pl_and_p_contention))
 
-            label = self.actor.forward(actor_input)
+                label = self.actor.forward(actor_input)
+
+            label.requires_grad_()
 
             s_a = torch.hstack((asso,interference,p_contention,label))
             self._printa("_train_actor states\n",to_numpy(state).T)
@@ -125,12 +126,17 @@ class infer_then_label(base_model):
             self._printa("_train_actor sapair\n",to_numpy(s_a).T)
             self._printa("_train_actor minlos\n",to_numpy(torch.hstack((min_path_loss[e_index[0,:]],min_path_loss[e_index[1,:]]))).T)
 
-            q = self.critic_target.forward(x,e_index,s_a)
-            # self._printa(q)
-            q = self._fair_q(q)
-            # self._printa(q)
-
-            loss += (-torch.mean(q))
+            qq = self.critic_target.forward(x,e_index,s_a)
+            qq.retain_grad()
+            q = self._fair_q(qq)
+            q = -torch.mean(q)
+            q.backward()
+            lable_g = label.grad.detach()
+            label_differentiable = self.actor.forward(actor_input)
+            loss += (-torch.mean((lable_g)*label_differentiable))
+            self._printa("_train_actor qq.grad\n",to_numpy(qq.grad).T)
+            self._printa("_train_actor label.grad\n",to_numpy(label.grad).T)
+            self._printa("_train_actor label\n",to_numpy(label).T)
 
         loss/=len(batch)
         self._print("_train_actor loss",loss)

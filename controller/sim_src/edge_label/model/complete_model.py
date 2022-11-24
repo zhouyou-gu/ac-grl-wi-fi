@@ -10,7 +10,7 @@ class complete_model(infer_then_label):
             with torch.no_grad():
                 state = to_tensor(sample['state'],requires_grad=False)
                 state = torch.hstack((state[e_index[0,:]],state[e_index[1,:]]))
-                result = self.infer.forward(state)
+                result = self.infer_target.forward(state)
                 p_contention = result[:,1:2]
 
                 state = to_tensor(sample['state'],requires_grad=False)
@@ -51,7 +51,7 @@ class complete_model(infer_then_label):
             loss += (-torch.mean((lable_g*scale)*label_differentiable))
             self._printa("_train_actor qq.grad\n",to_numpy(qq.grad).T)
             self._printa("_train_actor label.grad\n",to_numpy(label.grad).T)
-            self._printa("_train_actor lable_g\n",to_numpy(lable_g).T)
+            self._printa("_train_actor label\n",to_numpy(label).T)
             self._printa("_train_actor scale\n",to_numpy(scale).T)
 
         loss/=len(batch)

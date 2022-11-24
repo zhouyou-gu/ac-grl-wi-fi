@@ -21,6 +21,7 @@ class path_loss():
         self.lam = self.C / self.fre_Hz
         self.txp_dbm = txp_dbm
         self.min_rssi_dbm = min_rssi_dbm
+        assert shadowing_sigma >= 0.
         self.shadowing_sigma = shadowing_sigma
 
         self._config_ap_locs()
@@ -36,19 +37,21 @@ class path_loss():
         return ret
 
     def get_loss_sta_ap(self):
-        ret = np.zeros((self.n_sta,self.n_ap))
+        ret = np.ones((self.n_sta,self.n_ap))*np.inf
         for i in range(self.n_sta):
-            for j in range(self.n_ap):
-                ret[i,j] = self._get_loss_between_locs(self.sta_locs[i],self.ap_locs[j])
+            ii = 0
+            while np.min(ret[i,:]) > 90:
+                for j in range(self.n_ap):
+                    ret[i,j] = self._get_loss_between_locs(self.sta_locs[i],self.ap_locs[j],True)
         return ret
 
-    def get_loss_sta_sta(self,noise=False):
+    def get_loss_sta_sta(self):
         ret = np.zeros((self.n_sta,self.n_sta))
         for i in range(self.n_sta):
             for j in range(i,self.n_sta):
                 if i == j:
                     continue
-                ret[i,j] = self._get_loss_between_locs(self.sta_locs[i],self.sta_locs[j],noise=noise)
+                ret[i,j] = self._get_loss_between_locs(self.sta_locs[i],self.sta_locs[j],noise=True)
                 ret[j,i] = ret[i,j]
         return ret
 
@@ -104,6 +107,9 @@ if __name__ == '__main__':
     # print(pl.convert_loss_sta_ap_threshold(pl.get_loss_ap_ap()))
     # print(pl.convert_loss_sta_ap_threshold(pl.get_loss_sta_sta()))
 
-    y = pl.get_loss_sta_sta()
-    print(y)
-    print(pl.convert_loss_sta_sta_binary(y))
+    # y = pl.get_loss_sta_sta()
+    # print(y)
+    # print(pl.convert_loss_sta_sta_binary(y))
+    l_max = pl._get_loss_between_locs((1000,1000),(500,500))
+    print(l_max)
+    print(pl.get_loss_sta_ap())

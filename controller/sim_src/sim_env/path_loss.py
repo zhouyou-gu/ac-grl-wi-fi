@@ -7,7 +7,7 @@ class path_loss():
     PI = 3.14159265358979323846
     HIDDEN_LOSS = 200.
     NOISE_FLOOR_1MHZ_DBM = -93.9763
-    def __init__(self, n_ap = 4, n_sta = 10,range = 1000., fre_Hz = 1e9, txp_dbm = 0., min_rssi_dbm = -95, shadowing_sigma = 5):
+    def __init__(self, n_ap = 4, n_sta = 10,range = 1000., fre_Hz = 1e9, txp_dbm = 0., min_rssi_dbm = -95, shadowing_sigma = 5.):
         self.memory = None
         self.model = None
 
@@ -39,10 +39,9 @@ class path_loss():
     def get_loss_sta_ap(self):
         ret = np.ones((self.n_sta,self.n_ap))*np.inf
         for i in range(self.n_sta):
-            ii = 0
             while np.min(ret[i,:]) > 90:
                 for j in range(self.n_ap):
-                    ret[i,j] = self._get_loss_between_locs(self.sta_locs[i],self.ap_locs[j],True)
+                    ret[i,j] = self._get_loss_between_locs(self.sta_locs[i],self.ap_locs[j],noise=True)
         return ret
 
     def get_loss_sta_sta(self):

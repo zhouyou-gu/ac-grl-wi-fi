@@ -21,8 +21,8 @@ class learning_model(StatusObject):
 
 class base_model(learning_model):
     INF_LR = 0.001
-    ACT_LR = 0.001
-    CRI_LR = 0.001
+    ACT_LR = 0.0001
+    CRI_LR = 0.0001
     TAU = 0.01
     FAIRNESS_ALPHA = 10
     MAX_FAIR_ALPHA = 50

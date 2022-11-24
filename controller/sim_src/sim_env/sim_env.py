@@ -73,10 +73,10 @@ class sim_env(sim_env_to_controller_interface):
         self.cfg.loss_sta_sta = self.pl_model.get_loss_sta_sta()
 
     @counted
-    def step(self, no_run = False):
+    def step(self, run_ns3 = True):
         self.sample = {}
         state = self.pl_model.convert_loss_sta_ap_threshold(self.cfg.loss_sta_ap)
-        # state = cfg.loss_sta_ap
+        # state = self.cfg.loss_sta_ap
         state = self.formate_np_state(state)
         action = self.gen_action(state)
         # print(action)
@@ -94,7 +94,7 @@ class sim_env(sim_env_to_controller_interface):
         self.sample['target'] = self.pl_model.convert_loss_sta_sta_binary(self.cfg.loss_sta_sta)
         self.sample['action'] = action
         self.sample['n_node'] = self.pl_model.n_sta
-        if not no_run:
+        if run_ns3:
             self.ns3_env.start()
             self.ns3_env.join()
             rwd = self.ns3_env.get_return()

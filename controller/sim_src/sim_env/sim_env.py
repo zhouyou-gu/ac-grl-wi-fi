@@ -69,7 +69,7 @@ class sim_env(sim_env_to_controller_interface):
         self.cfg.loss_sta_sta = self.pl_model.get_loss_sta_sta()
 
     @counted
-    def step(self, run_ns3 = True):
+    def step(self, run_ns3 = True, seed = None):
         self.sample = {}
         state = self.pl_model.convert_loss_sta_ap_threshold(self.cfg.loss_sta_ap)
         # state = self.cfg.loss_sta_ap
@@ -81,7 +81,10 @@ class sim_env(sim_env_to_controller_interface):
         self.cfg.PROG_PATH = self.PROG_PATH
         self.cfg.PROG_NAME = self.PROG_NAME
         self.cfg.PROG_PORT = 0
-        self.cfg.PROG_SEED = (self.N_STEP % 1000) + 5000
+        if seed:
+            self.cfg.PROG_SEED = seed
+        else:
+            self.cfg.PROG_SEED = (self.N_STEP % 1000) + 5000
         self.cfg.PROG_TIME = self.ns3_sim_time_s
 
         self.cfg.twtstarttime = twt_cfg['twtstarttime']

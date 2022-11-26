@@ -1,6 +1,6 @@
 from sim_src.edge_label.model.infer_then_label_model import *
 
-class complete_model(infer_then_label):
+class complete_model(infer_then_label_model):
     def _train_actor(self,batch):
         self._print("_train_actor")
         loss = to_device(torch.zeros(1))

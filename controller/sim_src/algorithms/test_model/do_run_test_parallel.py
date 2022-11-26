@@ -6,11 +6,7 @@ from os.path import expanduser
 CTRL_PATH = os.path.join(expanduser("~"),"wifi-ai/controller")
 PATH = os.path.dirname(os.path.realpath(__file__))
 TEST_LIST = [
-                "test_base_model.py",
-                "test_complete_model.py",
                 "test_infer_then_label_model.py",
-                "test_weight_drift_protection_model.py",
-                "test_min_fair_model.py",
                 "test_itl_mmf.py"
              ]
 

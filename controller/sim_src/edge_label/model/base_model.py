@@ -91,7 +91,7 @@ class base_model(learning_model):
 
     def _load(self, path):
         if USE_CUDA:
-            return torch.load(path, map_location=torch.cuda.current_device())
+            return torch.load(path, map_location=torch.device('cuda', torch.cuda.current_device()))
         else:
             return torch.load(path, map_location=torch.device('cpu'))
 

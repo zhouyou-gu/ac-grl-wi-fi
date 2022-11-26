@@ -1,8 +1,7 @@
 from sim_src.edge_label.model.base_model import *
 
 
-
-class infer_then_label(base_model):
+class infer_then_label_model(base_model):
     def __init__(self, id, edge_dim=4, node_dim=4):
         base_model.__init__(self,id,edge_dim,node_dim)
 
@@ -57,31 +56,7 @@ class infer_then_label(base_model):
         return action
 
     def _train_infer(self,batch):
-        self._print("_train_infer")
-        loss = to_device(torch.zeros(1))
-        for sample in batch:
-            G = nx.complete_graph(sample['n_node'])
-            e_index = to_device(from_networkx(G).edge_index)
-
-            state = to_tensor(sample['state'],requires_grad=False)
-            state = torch.hstack((state[e_index[0,:]],state[e_index[1,:]]))
-
-            target = to_tensor(sample['target'],requires_grad=False)
-            target = target[e_index.transpose(0,1)[:,0],e_index.transpose(0,1)[:,1]]
-
-            target = nn.functional.one_hot(target.long(), num_classes=2).float()
-            result = self.infer.forward(state)
-
-            self._printa("_train_infer diff",torch.hstack((target,result,state)).transpose(0,1)[:,0])
-            loss += nn.functional.cross_entropy(torch.log(result),target)
-
-        loss/=len(batch)
-        self._print("_train_infer loss",loss)
-        self.infer_optim.zero_grad()
-        loss.backward()
-        self.infer_optim.step()
-
-        return to_numpy(loss)
+        pass
 
     def _train_actor(self,batch):
         self._print("_train_actor")

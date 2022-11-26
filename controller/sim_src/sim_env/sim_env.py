@@ -31,7 +31,7 @@ class sim_env(sim_env_to_controller_interface):
     TWT_START_TIME = 10000000
     TWT_ASLOT_TIME = 10000
 
-    def __init__(self, id=0, ns3_sim_time_s=5., app_packet_interval=20000, mac_packet_size=100, twt_log2_n_slot = 2, noise=5.):
+    def __init__(self, id=0, ns3_sim_time_s=5., app_packet_interval=20000, mac_packet_size=100, twt_log2_n_slot = 2, noise=0.):
         self.id = id
         self.ns3_sim_time_s = ns3_sim_time_s
         self.app_packet_interval = app_packet_interval
@@ -55,11 +55,7 @@ class sim_env(sim_env_to_controller_interface):
         self.pl_model = path_loss(n_sta=self.get_n_sta(),shadowing_sigma=self.noise)
 
         self.cfg = wifi_net_config()
-        self.cfg.PROG_PATH = self.PROG_PATH
-        self.cfg.PROG_NAME = self.PROG_NAME
-        self.cfg.PROG_PORT = 0
-        self.cfg.PROG_SEED = (self.N_STEP % 1000) + 5000
-        self.cfg.PROG_TIME = self.ns3_sim_time_s
+
 
         self.cfg.id = self.id
         self.cfg.n_ap = self.pl_model.n_ap
@@ -81,6 +77,12 @@ class sim_env(sim_env_to_controller_interface):
         action = self.gen_action(state)
         # print(action)
         twt_cfg = self.formate_np_action(action)
+
+        self.cfg.PROG_PATH = self.PROG_PATH
+        self.cfg.PROG_NAME = self.PROG_NAME
+        self.cfg.PROG_PORT = 0
+        self.cfg.PROG_SEED = (self.N_STEP % 1000) + 5000
+        self.cfg.PROG_TIME = self.ns3_sim_time_s
 
         self.cfg.twtstarttime = twt_cfg['twtstarttime']
         self.cfg.twtoffset = twt_cfg['twtoffset']

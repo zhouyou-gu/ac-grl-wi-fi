@@ -14,6 +14,6 @@ torch.set_printoptions(threshold=5)
 torch.set_printoptions(linewidth=1000)
 
 model_class = base_model
-run_test(model_class,GET_LOG_PATH_FOR_SIM_SCRIPT(__file__),ALPHA=100)
+run_test(model_class,GET_LOG_PATH_FOR_SIM_SCRIPT(__file__),ALPHA=100,load_infer=False)
 time.sleep(5)
 

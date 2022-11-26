@@ -14,5 +14,5 @@ torch.set_printoptions(threshold=5)
 torch.set_printoptions(linewidth=1000)
 
 model_class = weight_drift_protection
-run_test(model_class,GET_LOG_PATH_FOR_SIM_SCRIPT(__file__))
+run_test(model_class,GET_LOG_PATH_FOR_SIM_SCRIPT(__file__),load_infer=True)
 time.sleep(5)

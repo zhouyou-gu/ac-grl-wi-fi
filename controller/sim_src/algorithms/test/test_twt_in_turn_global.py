@@ -46,4 +46,4 @@ class test_actor:
 e.set_actor(test_actor(e.get_n_sta(),e.twt_log2_n_slot))
 for i in range(n_step):
     e.init_env()
-    sample = e.step(no_run=False)
+    sample = e.step(run_ns3=True)

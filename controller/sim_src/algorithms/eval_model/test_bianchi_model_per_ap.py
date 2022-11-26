@@ -40,4 +40,4 @@ cfg.save(OUT_FOLDER,"NaN")
 e.set_actor(model)
 for i in range(n_step):
     e.init_env()
-    sample = e.step(no_run=False)
+    sample = e.step(run_ns3=True)

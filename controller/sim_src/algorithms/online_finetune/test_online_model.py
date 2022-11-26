@@ -3,13 +3,17 @@ import random
 from os.path import expanduser
 import time
 
+import networkx as nx
 import numpy as np
 import torch
+from torch_geometric.utils import from_networkx
 
 from sim_src.edge_label.model.complete_model import complete_model
-from sim_src.edge_label.model.online_model import online_model
-from sim_src.sim_env.sim_env import sim_env, sim_env_online
-from sim_src.util import GET_LOG_PATH_FOR_SIM_SCRIPT, ParameterConfig
+from sim_src.edge_label.model.infer_then_label_model import infer_then_label_model
+from sim_src.edge_label.model.online_actor_model import online_actor_model
+from sim_src.edge_label.model.online_infer_model import online_infer_model
+from sim_src.sim_env.sim_env import sim_env
+from sim_src.util import GET_LOG_PATH_FOR_SIM_SCRIPT, ParameterConfig, to_device, to_tensor
 
 np.set_printoptions(threshold=5)
 np.set_printoptions(linewidth=1000)
@@ -20,21 +24,22 @@ torch.set_printoptions(linewidth=1000)
 OUT_FOLDER = GET_LOG_PATH_FOR_SIM_SCRIPT(__file__)
 
 ns3_path = os.path.join(expanduser("~"),"wifi-ai/ns-3-dev")
-e = sim_env_online(id=random.randint(40,200))
+e = sim_env(id=random.randint(40,200))
 e.PROG_PATH = ns3_path
 e.PROG_NAME = "wifi-ai/env"
 e.DEBUG = True
 
 n_step = 1000
-model = online_model(0)
+model = online_actor_model(0)
 model.DEBUG_STEP = 10
 model.DEBUG = True
 
-nn_path = os.path.join(expanduser("~"),"wifi-ai/controller/sim_src/algorithms/selected_nn/test_complete_model-2022-November-23-09-04-43-ail")
+nn_path = os.path.join(expanduser("~"),"wifi-ai/controller/sim_src/algorithms/selected_nn/test_infer_then_label_model-2022-November-24-23-07-13-ail")
+infer_path = os.path.join(expanduser("~"),"wifi-ai/controller/sim_src/algorithms/selected_nn/infer/infer.999.pt")
 
-model.load_actor(os.path.join(nn_path,"actor_target.299.pt"))
-model.load_infer(os.path.join(nn_path,"infer_target.299.pt"))
-model.load_critic(os.path.join(nn_path,"critic_target.299.pt"))
+model.load_actor(os.path.join(nn_path,"actor_target.699.pt"))
+model.load_infer(infer_path)
+model.load_critic(os.path.join(nn_path,"critic_target.699.pt"))
 # print(model.actor_target)
 cfg = ParameterConfig()
 # cfg['ALPHA'] = ALPHA
@@ -42,10 +47,11 @@ cfg = ParameterConfig()
 cfg.save(OUT_FOLDER,"NaN")
 
 e.set_actor(model)
+model.setup_weight(e.cfg.n_sta,e.formate_np_state(e.pl_model.convert_loss_sta_ap_threshold(e.cfg.loss_sta_ap)))
+e.init_env()
 for i in range(n_step):
     batch = []
-    e.init_env()
-    sample = e.step(no_run=False)
+    sample = e.step(run_ns3=True)
     batch.append(sample)
     model.step(batch)
     if (i+1) % 100 == 0:

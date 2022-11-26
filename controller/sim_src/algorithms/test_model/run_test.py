@@ -5,8 +5,8 @@ from os.path import expanduser
 from sim_src.sim_env.sim_env import sim_env
 from sim_src.util import ParameterConfig, StatusObject
 
-
-def run_test(mc,log_path,ec=sim_env,DEBUG=False,EXPLORATION=True,ALPHA=10,run_ns3=True):
+INFER_PATH = "wifi-ai/controller/sim_src/algorithms/selected_nn/infer/infer.999.pt"
+def run_test(mc,log_path,ec=sim_env,DEBUG=False,EXPLORATION=True,ALPHA=10,run_ns3=True,load_infer=True):
     StatusObject.DISABLE_ALL_DEBUG = not DEBUG
     OUT_FOLDER = log_path
     model_class = mc
@@ -19,6 +19,9 @@ def run_test(mc,log_path,ec=sim_env,DEBUG=False,EXPLORATION=True,ALPHA=10,run_ns
     n_step = 1000
     batch_size = 1
     model = model_class(0)
+    if load_infer:
+        path = os.path.join(expanduser("~"),INFER_PATH)
+        model.load_infer(path)
     model.EXPLORATION = EXPLORATION
     model.DEBUG_STEP = 10
     model.DEBUG = True

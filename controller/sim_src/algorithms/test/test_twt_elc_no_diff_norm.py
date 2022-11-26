@@ -43,7 +43,7 @@ def run_sim(ALPHA=0.):
         batch = []
         for j in range(batch_size):
             e.init_env()
-            sample = e.step(no_run=False)
+            sample = e.step(run_ns3=True)
             batch.append(sample)
         model.step(batch)
         if (i+1) % 100 == 0:

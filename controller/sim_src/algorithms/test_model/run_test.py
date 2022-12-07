@@ -5,7 +5,7 @@ from os.path import expanduser
 from sim_src.sim_env.sim_env import sim_env
 from sim_src.util import ParameterConfig, StatusObject
 
-INFER_PATH = "wifi-ai/controller/sim_src/algorithms/selected_nn/infer/infer.999.pt"
+INFER_PATH = "wifi-ai/controller/sim_src/algorithms/selected_nn/infer/infer.1999.pt"
 def run_test(mc,log_path,ec=sim_env,DEBUG=False,EXPLORATION=True,ALPHA=10,run_ns3=True,load_infer=True):
     StatusObject.DISABLE_ALL_DEBUG = not DEBUG
     OUT_FOLDER = log_path

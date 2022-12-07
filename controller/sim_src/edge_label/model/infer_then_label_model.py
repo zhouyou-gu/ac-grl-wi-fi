@@ -122,8 +122,10 @@ class infer_then_label_model(base_model):
             G = nx.complete_graph(sample['n_node'])
             e_index = to_device(from_networkx(G).edge_index)
             with torch.no_grad():
-                target = to_tensor(sample['target'],requires_grad=False)
-                target = target[e_index[0],e_index[1]].view(-1,1)
+                state = to_tensor(sample['state'],requires_grad=False)
+                state = torch.hstack((state[e_index[0,:]],state[e_index[1,:]]))
+                result = self.infer_target.forward(state)
+                p_contention = result[:,1:2]
 
                 action = to_tensor(sample['action'],requires_grad=False)
                 action = action[e_index[0],e_index[1]].view(-1,1)
@@ -140,7 +142,7 @@ class infer_then_label_model(base_model):
                 interference = torch.hstack((state_A_to_B,state_B_to_A))
 
                 asso = torch.eq(min_path_loss_idx[e_index[0,:]], min_path_loss_idx[e_index[1,:]] ).float()
-                s_a = torch.hstack((asso,interference,target,action))
+                s_a = torch.hstack((asso,interference,p_contention,action))
                 self._printa("_train_critic sapair\n",to_numpy(s_a).T)
 
             q = self.critic.forward(x,e_index,s_a)

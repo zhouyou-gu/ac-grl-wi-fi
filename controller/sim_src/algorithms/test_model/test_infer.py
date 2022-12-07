@@ -29,7 +29,7 @@ e.PROG_PATH = ns3_path
 e.PROG_NAME = "wifi-ai/env"
 e.DEBUG = True
 
-n_step = 1000
+n_step = 2000
 model = infer_model(0)
 model.DEBUG_STEP = 10
 model.DEBUG = True
@@ -37,7 +37,7 @@ model.DEBUG = True
 e.set_actor(model)
 
 
-batch_size = 20
+batch_size = 1
 for i in range(n_step):
     batch = []
     for ii in range(batch_size):
@@ -47,5 +47,6 @@ for i in range(n_step):
     model.step(batch)
     if (i+1) % 100 == 0:
         model.save(OUT_FOLDER,str(i))
-    if (i+1) in [10, 100, 500, 1000]:
+    if (i+1) in [10, 100, 500, 1000, 2000]:
         e.save_np(OUT_FOLDER,str(i))
+        model.save_np(OUT_FOLDER,str(i))

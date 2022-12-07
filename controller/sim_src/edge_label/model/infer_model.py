@@ -21,6 +21,7 @@ class infer_model(base_model):
     def _train_infer(self,batch):
         self._print("_train_infer")
         loss = to_device(torch.zeros(1))
+        accu = 0.
         for sample in batch:
             G = nx.complete_graph(sample['n_node'])
             e_index = to_device(from_networkx(G).edge_index)
@@ -36,13 +37,17 @@ class infer_model(base_model):
 
             self._printa("_train_infer diff\n",torch.hstack((target[:,1:2],result[:,1:2])).transpose(0,1))
             self._printa("_train_infer accu",torch.mean(torch.eq(target[:,1:2],torch.bernoulli(result[:,1:2])).float()))
+
+            accu += to_numpy(torch.mean(torch.eq(target[:,1:2],torch.bernoulli(result[:,1:2])).float()))
             loss += nn.functional.cross_entropy(torch.log(result),target)
 
         loss/=len(batch)
+        accu/=len(batch)
         self._print("_train_infer loss",loss)
         self.infer_optim.zero_grad()
         loss.backward()
         self.infer_optim.step()
+        self._add_np_log("loss", np.reshape(np.array([to_numpy(loss)[0],accu]), (1, -1)))
 
         return to_numpy(loss)
 

@@ -14,5 +14,5 @@ torch.set_printoptions(threshold=5)
 torch.set_printoptions(linewidth=1000)
 
 model_class = dac_gnn_model
-run_test(model_class,GET_LOG_PATH_FOR_SIM_SCRIPT(__file__),ec=sim_env_dac_gnn)
+run_test(model_class,GET_LOG_PATH_FOR_SIM_SCRIPT(__file__),ec=sim_env_dac_gnn,ALPHA=100)
 time.sleep(5)

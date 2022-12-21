@@ -41,3 +41,5 @@ e.set_actor(model)
 for i in range(n_step):
     e.init_env()
     sample = e.step(run_ns3=True)
+    if (i+1) in [10, 100, 500, 1000]:
+        e.save_np(OUT_FOLDER,str(i))

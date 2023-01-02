@@ -22,17 +22,18 @@ for t in TEST_LIST:
 def run_cmd(cmd):
     os.system(cmd)
 
-n_test = 10
-p_list = []
-for cmd in CMD_LIST:
-    for n in range(n_test):
-        print(cmd)
-        p = Process(target=run_cmd, args=(cmd,))
-        p_list.append(p)
+for ii in range(5):
+    n_test = 3
+    p_list = []
+    for cmd in CMD_LIST:
+        for n in range(n_test):
+            print(cmd)
+            p = Process(target=run_cmd, args=(cmd,))
+            p_list.append(p)
 
-for p in p_list:
-    p.start()
-    time.sleep(2)
+    for p in p_list:
+        p.start()
+        time.sleep(2)
 
-for p in p_list:
-    p.join()
+    for p in p_list:
+        p.join()

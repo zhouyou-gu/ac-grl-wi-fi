@@ -28,7 +28,7 @@ class sim_env(sim_env_to_controller_interface):
     PROG_PATH = ''
     PROG_NAME = ''
 
-    TWT_START_TIME = 10000000
+    TWT_START_TIME = 2000000
     TWT_ASLOT_TIME = 10000
 
     def __init__(self, id=0, ns3_sim_time_s=5., app_packet_interval=20000, mac_packet_size=100, twt_log2_n_slot = 2, noise=0.):
@@ -177,6 +177,7 @@ class sim_env(sim_env_to_controller_interface):
         # print(reward,"+++++++++++++++++")
         ret = reward['thr']/(1e6/self.app_packet_interval)
         self._printa(ret)
+        self._printa("_moving_average reward",ret)
         self._printa("_moving_average reward",self._moving_average("reward",np.mean(ret)),np.mean(ret))
         self._printa("_moving_average min_reward",self._moving_average("min_reward",np.min(ret)),np.min(ret))
         self._printa("_moving_average n_none_rwd",self._moving_average("n_none_rwd",ret.size - np.count_nonzero(ret)),ret.size - np.count_nonzero(ret))

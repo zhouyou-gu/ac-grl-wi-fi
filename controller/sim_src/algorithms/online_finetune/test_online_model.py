@@ -34,12 +34,12 @@ model = online_actor_model(0)
 model.DEBUG_STEP = 10
 model.DEBUG = True
 
-nn_path = os.path.join(expanduser("~"),"wifi-ai/controller/sim_src/algorithms/selected_nn/test_infer_then_label_model-2022-November-24-23-07-13-ail")
+nn_path = os.path.join(expanduser("~"),"wifi-ai/controller/sim_src/algorithms/selected_nn/test_infer_then_label_model-2022-November-24-23-07-05-ail")
 infer_path = os.path.join(expanduser("~"),"wifi-ai/controller/sim_src/algorithms/selected_nn/infer/infer.999.pt")
 
-model.load_actor(os.path.join(nn_path,"actor_target.699.pt"))
+model.load_actor(os.path.join(nn_path,"actor_target.499.pt"))
 model.load_infer(infer_path)
-model.load_critic(os.path.join(nn_path,"critic_target.699.pt"))
+model.load_critic(os.path.join(nn_path,"critic_target.499.pt"))
 # print(model.actor_target)
 cfg = ParameterConfig()
 # cfg['ALPHA'] = ALPHA
@@ -56,5 +56,5 @@ for i in range(n_step):
     model.step(batch)
     if (i+1) % 100 == 0:
         model.save(OUT_FOLDER,str(i))
-    if (i+1) in [10, 100, 500, 1000]:
+    if (i+1) in [10, 100, 200, 300, 500, 1000]:
         e.save_np(OUT_FOLDER,str(i))

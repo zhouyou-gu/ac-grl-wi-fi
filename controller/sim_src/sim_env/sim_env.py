@@ -31,7 +31,7 @@ class sim_env(sim_env_to_controller_interface):
     TWT_START_TIME = 2000000
     TWT_ASLOT_TIME = 10000
 
-    def __init__(self, id=0, ns3_sim_time_s=5., app_packet_interval=20000, mac_packet_size=100, twt_log2_n_slot = 2, noise=0.):
+    def __init__(self, id=0, ns3_sim_time_s=5., app_packet_interval=20000, mac_packet_size=100, twt_log2_n_slot = 2, noise=0., n_user=(20,20)):
         self.id = id
         self.ns3_sim_time_s = ns3_sim_time_s
         self.app_packet_interval = app_packet_interval
@@ -49,10 +49,15 @@ class sim_env(sim_env_to_controller_interface):
         self.ns3_env:sim_wifi_net = None
         self.actor = None
 
+        self.n_user_range = n_user
+        self.n_user = 0
+
+        self.n_user_rand_gen = np.random.default_rng(0)
+
         self.init_env()
 
     def init_env(self):
-        self.pl_model = path_loss(n_sta=self.get_n_sta(),shadowing_sigma=self.noise)
+        self.pl_model = path_loss(n_sta=self.set_n_sta(), shadowing_sigma=self.noise, seed=self.N_STEP)
 
         self.cfg = wifi_net_config()
 
@@ -184,28 +189,30 @@ class sim_env(sim_env_to_controller_interface):
 
         return ret[:,np.newaxis]
 
-    def get_n_sta(self):
-        return 20
+    def set_n_sta(self):
+        self.n_user = self.n_user_rand_gen.integers(low=self.n_user_range[0],high=self.n_user_range[1],endpoint=True)
+        return self.n_user
 
 
 if __name__ == '__main__':
-    build_ns3("/home/soyo/wifi-ai/ns-3-dev")
+    # build_ns3("/home/soyo/wifi-ai/ns-3-dev")
     # exit(0)
     e = sim_env(id=random.randint(40,60))
     e.PROG_PATH = "/home/soyo/wifi-ai/ns-3-dev"
     e.PROG_NAME = "wifi-ai/env"
     class test_actor:
         def __init__(self, n_sta):
+            print(n_sta)
             self.n_sta = n_sta
 
         def gen_action(self,state):
             ret = np.random.uniform(0,1,(self.n_sta,self.n_sta))
             np.fill_diagonal(ret,0)
-            return to_tensor(ret)
+            return ret
 
-    a = test_actor(e.get_n_sta())
+    a = test_actor(e.set_n_sta())
     e.set_actor(a)
     e.init_env()
-    e.ns3_env.DEBUG = True
+    # e.ns3_env.DEBUG = True
     e.step()
 

@@ -7,7 +7,9 @@ class path_loss():
     PI = 3.14159265358979323846
     HIDDEN_LOSS = 200.
     NOISE_FLOOR_1MHZ_DBM = -93.9763
-    def __init__(self, n_ap = 4, n_sta = 10,range = 1000., fre_Hz = 1e9, txp_dbm = 0., min_rssi_dbm = -95, shadowing_sigma = 5.):
+    def __init__(self, n_ap = 4, n_sta = 10,range = 1000., fre_Hz = 1e9, txp_dbm = 0., min_rssi_dbm = -95, shadowing_sigma = 5., seed=0):
+        self.rand_gen = np.random.default_rng(seed)
+
         self.memory = None
         self.model = None
 
@@ -69,8 +71,8 @@ class path_loss():
         assert len(self.sta_locs) == self.n_sta
 
     def _get_random_loc(self):
-        x = np.random.uniform(-self.range, self.range)
-        y = np.random.uniform(-self.range, self.range)
+        x = self.rand_gen.uniform(-self.range, self.range)
+        y = self.rand_gen.uniform(-self.range, self.range)
         return (x,y)
 
     def _get_loss_between_locs(self, a, b, noise=False):
@@ -82,7 +84,7 @@ class path_loss():
         denominator = 16 * (self.PI ** 2) * ((dis + 1e-5) ** 2)
         loss = - 10. * math.log10(numerator / denominator)
         if noise:
-            loss += np.random.randn() * self.shadowing_sigma
+            loss += self.rand_gen.standard_normal() * self.shadowing_sigma
         loss = np.max((loss,0))
         return loss
 

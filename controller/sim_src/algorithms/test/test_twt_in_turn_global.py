@@ -43,7 +43,7 @@ class test_actor:
         return ret
 
 
-e.set_actor(test_actor(e.get_n_sta(),e.twt_log2_n_slot))
+e.set_actor(test_actor(e.set_n_sta(), e.twt_log2_n_slot))
 for i in range(n_step):
     e.init_env()
     sample = e.step(run_ns3=True)

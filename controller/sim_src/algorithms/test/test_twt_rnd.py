@@ -31,7 +31,7 @@ class test_actor:
         ret = np.random.randint(0,2**self.logk,self.n_sta)
         return ret
 
-e.set_actor(test_actor(e.get_n_sta(),e.twt_log2_n_slot))
+e.set_actor(test_actor(e.set_n_sta(), e.twt_log2_n_slot))
 for i in range(n_step):
     e.init_env()
     sample = e.step(run_ns3=True)

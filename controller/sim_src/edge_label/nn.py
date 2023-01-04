@@ -84,7 +84,7 @@ class WGNN(nn.Module):
 
 class ELNN(nn.Module):
     def __init__(self, in_edge_channels,  out_edge_channels= 1, hidden_dim=None):
-        super().__init__()
+        nn.Module.__init__(self)
         if hidden_dim is None:
             hidden_dim = in_edge_channels * HIDDEN_DIM_MULTIPLIER
         self.network = nn.Sequential(
@@ -100,8 +100,8 @@ class ELNN(nn.Module):
 
 
 class INFNN(nn.Module):
-    def __init__(self, edge_feature, edge_type = 2, hidden_dim=None):
-        super().__init__()
+    def __init__(self, edge_feature, edge_type = 1, hidden_dim=None):
+        nn.Module.__init__(self)
         if hidden_dim is None:
             hidden_dim = edge_feature * HIDDEN_DIM_MULTIPLIER
         self.network = nn.Sequential(
@@ -112,7 +112,8 @@ class INFNN(nn.Module):
             nn.Linear(hidden_dim, edge_type),
         )
     def forward(self, x):
-        out = nn.functional.softmax(self.network(x), dim=1)
+        # out = nn.functional.softmax(self.network(x), dim=1)
+        out = self.network(x).sigmoid()
         return out
 
 
@@ -160,3 +161,24 @@ class MPGNN(nn.Module):
 
         y = self.read_out(torch.cat((x,in_x),dim=1))
         return y
+
+class REGNN(nn.Module):
+    def __init__(self, hidden_layer = 8, filter_coefficient = 5, out_dim = 2):
+        nn.Module.__init__(self)
+        self.alpha_hidden = torch.nn.Parameter(torch.zeros(hidden_layer,filter_coefficient))
+        self.alpha_out = torch.nn.Parameter(torch.zeros(out_dim,filter_coefficient))
+
+    def forward(self, H, x):
+        for i in range(self.alpha_hidden.shape[0]):
+            y = torch.cat([self.alpha_hidden[i,j] * torch.matmul(torch.linalg.matrix_power(H,j),x) for j in range(self.alpha_hidden.shape[1])], dim=1)
+            x = torch.sum(y,dim=1)
+            x = x.relu()
+
+        out = []
+        for i in range(self.alpha_out.shape[0]):
+            y = torch.cat([self.alpha_out[i,j] * torch.matmul(torch.linalg.matrix_power(H,j),x) for j in range(self.alpha_out.shape[1])], dim=1)
+            o = torch.sum(y,dim=1)
+            o = o.sigmoid()
+            out.append(o)
+        out = torch.cat(out,dim=1)
+        return out

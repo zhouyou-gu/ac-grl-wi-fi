@@ -41,7 +41,7 @@ class wifi_net_instance(StatusObject):
         pass
 
 class sim_wifi_net(wifi_net_instance, ns3_env, Thread):
-    DEBUG = True
+    DEBUG = False
     def __init__(self, id):
         Thread.__init__(self)
         self.id = id

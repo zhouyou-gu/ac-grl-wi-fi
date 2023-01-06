@@ -163,22 +163,69 @@ class MPGNN(nn.Module):
         return y
 
 class REGNN(nn.Module):
-    def __init__(self, hidden_layer = 8, filter_coefficient = 5, out_dim = 2):
+    def __init__(self, hidden_layer = 5, filter_coefficient = 5, out_dim = 4):
         nn.Module.__init__(self)
-        self.alpha_hidden = torch.nn.Parameter(torch.zeros(hidden_layer,filter_coefficient))
-        self.alpha_out = torch.nn.Parameter(torch.zeros(out_dim,filter_coefficient))
+        self.alpha_hidden = torch.nn.Parameter(torch.ones(hidden_layer,filter_coefficient)/filter_coefficient/10)
+        self.alpha_out = torch.nn.Parameter(torch.ones(out_dim,filter_coefficient)/filter_coefficient/10)
 
     def forward(self, H, x):
+        H = (H+1)/2.
+        x = (x+1)/2
         for i in range(self.alpha_hidden.shape[0]):
-            y = torch.cat([self.alpha_hidden[i,j] * torch.matmul(torch.linalg.matrix_power(H,j),x) for j in range(self.alpha_hidden.shape[1])], dim=1)
-            x = torch.sum(y,dim=1)
-            x = x.relu()
+            y = []
+            for j in range(self.alpha_hidden.shape[1]):
+                yy = self.alpha_hidden[i,j] * torch.matmul(torch.linalg.matrix_power(H,j),x)
+                y.append(yy)
+            y = torch.cat(y,dim=1)
+            y = torch.sum(y,dim=1,keepdim=True)
+            x = nn.functional.relu(y)
+            # print(x)
+            x = x / torch.mean(x)
+            print(x)
+
+            # x = x / torch.max(x)
 
         out = []
         for i in range(self.alpha_out.shape[0]):
             y = torch.cat([self.alpha_out[i,j] * torch.matmul(torch.linalg.matrix_power(H,j),x) for j in range(self.alpha_out.shape[1])], dim=1)
-            o = torch.sum(y,dim=1)
-            o = o.sigmoid()
+            o = torch.sum(y,dim=1,keepdim=True)
             out.append(o)
         out = torch.cat(out,dim=1)
+        print(out)
+        out = torch.softmax(out,dim=1)
+        print(out)
+        return out
+
+
+class REGNN_BIN(nn.Module):
+    def __init__(self, hidden_layer = 5, filter_coefficient = 5, out_dim = 2):
+        nn.Module.__init__(self)
+
+        self.alpha_hidden = torch.nn.Parameter(torch.randn(out_dim,hidden_layer,filter_coefficient))
+    def forward(self, H, x):
+        H = (H+1)/2.
+        x = (x+1)/2
+        print(self.alpha_hidden)
+        out = []
+        for a in range(self.alpha_hidden.shape[0]):
+            for i in range(self.alpha_hidden.shape[1]):
+                y = []
+                for j in range(self.alpha_hidden.shape[2]):
+                    yy = self.alpha_hidden[a,i,j] * torch.matmul(torch.linalg.matrix_power(H,j),x)
+                    y.append(yy)
+                print(y)
+                y = torch.cat(y,dim=1)
+                y = torch.sum(y,dim=1,keepdim=True)
+                x = nn.functional.leaky_relu(y)
+                print("x",a,i,x)
+                # x = x / torch.numel(x) / self.alpha_hidden.shape[2]
+                x = x / torch.mean(x).detach()
+                x = x - torch.mean(x).detach()
+                print("x",a,i,x)
+            out.append(x)
+
+        out = torch.cat(out,dim=1)
+        print(out)
+        out = nn.functional.sigmoid(out)
+        print(out)
         return out

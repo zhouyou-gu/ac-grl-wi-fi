@@ -204,6 +204,9 @@ class base_model(learning_model):
 
                 x = to_tensor(sample['state'],requires_grad=False)
 
+                reward = to_tensor(sample['reward'],requires_grad=False)
+                min_r_idx = torch.argmin(reward)
+
             label = self.actor.forward(actor_input)
 
             s_a = torch.hstack((state,label))
@@ -212,7 +215,9 @@ class base_model(learning_model):
 
             q = self.critic_target.forward(x,e_index,label)
             # self._printa(q)
-            q = self._fair_q(q)
+            # q = self._fair_q(q)
+            q = q[min_r_idx]
+            self._printa(q,min_r_idx,reward[min_r_idx])
             # self._printa(q)
 
             loss += (-torch.mean(q))

@@ -110,8 +110,10 @@ class StatusObject:
     INIT_LOGGED_NP_DATA = False
 
     MOVING_AVERAGE_DICT = {}
+    MOVING_AVERAGE_DICT_N_STEP = {}
     LOGGED_NP_DATA = {}
 
+    LOGGED_CLASS_NAME = None
     def save(self, path: str, postfix: str):
         pass
 
@@ -121,7 +123,10 @@ class StatusObject:
         except:
             pass
         for key in self.LOGGED_NP_DATA:
-            data_name = "%s.%s.%s.txt" % (self.__class__.__name__,key,postfix)
+            if self.LOGGED_CLASS_NAME:
+                data_name = "%s.%s.%s.txt" % (self.LOGGED_CLASS_NAME,key,postfix)
+            else:
+                data_name = "%s.%s.%s.txt" % (self.__class__.__name__,key,postfix)
             data_path = os.path.join(path,data_name)
             np.savetxt(data_path, self.LOGGED_NP_DATA[key] , delimiter=',')
 
@@ -156,13 +161,20 @@ class StatusObject:
     def _moving_average(self, key, new_value):
         if not self.INIT_MOVING_AVERAGE:
             self.MOVING_AVERAGE_DICT = {}
+            self.MOVING_AVERAGE_DICT_N_STEP = {}
             self.INIT_MOVING_AVERAGE = True
 
         if not (key in self.MOVING_AVERAGE_DICT):
             self.MOVING_AVERAGE_DICT[key] = 0.
+            self.MOVING_AVERAGE_DICT_N_STEP[key] = 0.
 
-        if key in self.MOVING_AVERAGE_DICT:
-            self.MOVING_AVERAGE_DICT[key] = self.MOVING_AVERAGE_DICT[key] * (1.-1./self.MOVING_AVERAGE_TIME_WINDOW) + 1./self.MOVING_AVERAGE_TIME_WINDOW * new_value
+        if key in self.MOVING_AVERAGE_DICT and key in self.MOVING_AVERAGE_DICT_N_STEP:
+            step = self.MOVING_AVERAGE_DICT_N_STEP[key] + 1
+            step = step if step < self.MOVING_AVERAGE_TIME_WINDOW else self.MOVING_AVERAGE_TIME_WINDOW
+
+            self.MOVING_AVERAGE_DICT[key] = self.MOVING_AVERAGE_DICT[key] * (1.-1./step) + 1./step * new_value
+            self.MOVING_AVERAGE_DICT_N_STEP[key] += 1
+
             return self.MOVING_AVERAGE_DICT[key]
         else:
             return 0.

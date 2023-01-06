@@ -32,6 +32,7 @@ class sim_env(sim_env_to_controller_interface):
     TWT_ASLOT_TIME = 10000
 
     def __init__(self, id=0, ns3_sim_time_s=5., app_packet_interval=20000, mac_packet_size=100, twt_log2_n_slot = 2, noise=0., n_user=(20,20)):
+        self.LOGGED_CLASS_NAME = "sim_env"
         self.id = id
         self.ns3_sim_time_s = ns3_sim_time_s
         self.app_packet_interval = app_packet_interval

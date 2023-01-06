@@ -8,8 +8,8 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 TEST_LIST = [
     "test_base_model.py",
     "test_itl_mmf.py",
-    "test_dac_gnn_model.py",
-    "test_sac_gnn_model.py",
+    "test_itl_mmf_bidirection_interference.py",
+    # "test_sac_gnn_model.py",
 ]
 
 CMD_LIST = []

@@ -24,7 +24,7 @@ e.PROG_PATH = ns3_path
 e.PROG_NAME = "wifi-ai/env"
 e.DEBUG = True
 
-n_step = 100000
+n_step = 1000
 
 class test_actor:
     def __init__(self, logk = 2):

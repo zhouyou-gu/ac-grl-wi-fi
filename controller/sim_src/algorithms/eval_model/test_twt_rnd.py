@@ -1,8 +1,9 @@
+import os
 import random
+from os.path import expanduser
 
 import numpy as np
 
-from sim_src.ns3_ctrl.ns3_ctrl import build_ns3
 from sim_src.sim_env.sim_env import sim_env
 from sim_src.util import GET_LOG_PATH_FOR_SIM_SCRIPT, StatusObject
 
@@ -16,9 +17,9 @@ class tmp_sim_env(sim_env):
     def format_act_to_sta_twt_idx(self, action):
         return action
 
-
 e = tmp_sim_env(id=random.randint(40,60))
-e.PROG_PATH = "/home/soyo/wifi-ai/ns-3-dev"
+ns3_path = os.path.join(expanduser("~"),"wifi-ai/ns-3-dev")
+e.PROG_PATH = ns3_path
 e.PROG_NAME = "wifi-ai/env"
 e.DEBUG = True
 

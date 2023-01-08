@@ -20,11 +20,13 @@ StatusObject.DISABLE_ALL_DEBUG = True
 
 OUT_FOLDER = GET_LOG_PATH_FOR_SIM_SCRIPT(__file__)
 
-ns3_path = os.path.join(expanduser("~"),"wifi-ai/ns-3-dev")
 e = sim_env(id=random.randint(40,200))
+
+ns3_path = os.path.join(expanduser("~"),"wifi-ai/ns-3-dev")
 e.PROG_PATH = ns3_path
 e.PROG_NAME = "wifi-ai/env"
 e.DEBUG = True
+
 
 n_step = 1000
 model = graphcut_hidden_model(0)

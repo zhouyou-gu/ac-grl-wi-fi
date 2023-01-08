@@ -12,16 +12,17 @@ CRITIC_PATH = "wifi-ai/controller/sim_src/algorithms/selected_nn/training/critic
 
 StatusObject.DISABLE_ALL_DEBUG = True
 OUT_FOLDER = GET_LOG_PATH_FOR_SIM_SCRIPT(__file__)
-model_class = itl_bidirection_interference
-ns3_path = os.path.join(expanduser("~"),"wifi-ai/ns-3-dev")
+
 e = sim_env(id=random.randint(40,200))
+
+ns3_path = os.path.join(expanduser("~"),"wifi-ai/ns-3-dev")
 e.PROG_PATH = ns3_path
 e.PROG_NAME = "wifi-ai/env"
 e.DEBUG = True
 
 n_step = 1000
 batch_size = 1
-model = model_class(0)
+model = itl_bidirection_interference(0)
 
 
 path = os.path.join(expanduser("~"),INFER_PATH)

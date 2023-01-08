@@ -11,9 +11,11 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 TEST_LIST = [
     "test_base_model.py",
     "test_itl_mmf.py",
-    "test_dac_gnn_model.py",
+    "test_itl_mmf_bidirection_interference.py",
     "test_sac_gnn_model.py",
+    "test_reg_gnn_model_bin.py",
 ]
+
 
 
 def load_res_dir_data(dir,cls_name,key,postfix):

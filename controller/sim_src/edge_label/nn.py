@@ -181,7 +181,7 @@ class REGNN(nn.Module):
             x = nn.functional.relu(y)
             # print(x)
             x = x / torch.mean(x)
-            print(x)
+            # print(x)
 
             # x = x / torch.max(x)
 
@@ -191,9 +191,9 @@ class REGNN(nn.Module):
             o = torch.sum(y,dim=1,keepdim=True)
             out.append(o)
         out = torch.cat(out,dim=1)
-        print(out)
+        # print(out)
         out = torch.softmax(out,dim=1)
-        print(out)
+        # print(out)
         return out
 
 
@@ -205,7 +205,7 @@ class REGNN_BIN(nn.Module):
     def forward(self, H, x):
         H = (H+1)/2.
         x = (x+1)/2
-        print(self.alpha_hidden)
+        # print(self.alpha_hidden)
         out = []
         for a in range(self.alpha_hidden.shape[0]):
             for i in range(self.alpha_hidden.shape[1]):
@@ -213,19 +213,19 @@ class REGNN_BIN(nn.Module):
                 for j in range(self.alpha_hidden.shape[2]):
                     yy = self.alpha_hidden[a,i,j] * torch.matmul(torch.linalg.matrix_power(H,j),x)
                     y.append(yy)
-                print(y)
+                # print(y)
                 y = torch.cat(y,dim=1)
                 y = torch.sum(y,dim=1,keepdim=True)
                 x = nn.functional.leaky_relu(y)
-                print("x",a,i,x)
+                # print("x",a,i,x)
                 # x = x / torch.numel(x) / self.alpha_hidden.shape[2]
                 x = x / torch.mean(x).detach()
                 x = x - torch.mean(x).detach()
-                print("x",a,i,x)
+                # print("x",a,i,x)
             out.append(x)
 
         out = torch.cat(out,dim=1)
-        print(out)
-        out = nn.functional.sigmoid(out)
-        print(out)
+        # print(out)
+        out = torch.sigmoid(out)
+        # print(out)
         return out

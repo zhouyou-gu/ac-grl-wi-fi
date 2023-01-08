@@ -14,5 +14,5 @@ torch.set_printoptions(threshold=5)
 torch.set_printoptions(linewidth=1000)
 
 model_class = reg_gnn_model_bin
-run_test(model_class,GET_LOG_PATH_FOR_SIM_SCRIPT(__file__),ec=sim_env_reg_gnn_bin,DEBUG=True)
+run_test(model_class,GET_LOG_PATH_FOR_SIM_SCRIPT(__file__),ec=sim_env_reg_gnn_bin)
 time.sleep(5)

@@ -52,7 +52,8 @@ class itl_bidirection_interference(base_model):
             action_mat = to_dense_adj(edge_index=e_index,batch=None,edge_attr=label).view(n_node,n_node)
             action = to_numpy(action_mat)
 
-        action = self.add_noise(action)
+        if self.EXPLORATION:
+            action = self.add_noise(action)
         return action
 
     def _train_infer(self,batch):

@@ -1,13 +1,12 @@
 import os
 import random
 from os.path import expanduser
-import time
 
 import numpy as np
 import torch
 
-from sim_src.algorithms.test_model.run_test import run_test
-from sim_src.other_methods.bianchi_model import bianchi_model, sim_env_bianchi_model
+from sim_src.other_methods.graphcut_model import graphcut_hidden_model
+from sim_src.sim_env.sim_env import sim_env
 from sim_src.util import GET_LOG_PATH_FOR_SIM_SCRIPT, ParameterConfig, StatusObject
 
 np.set_printoptions(threshold=5)
@@ -18,16 +17,17 @@ torch.set_printoptions(linewidth=1000)
 
 StatusObject.DISABLE_ALL_DEBUG = True
 
+
 OUT_FOLDER = GET_LOG_PATH_FOR_SIM_SCRIPT(__file__)
 
 ns3_path = os.path.join(expanduser("~"),"wifi-ai/ns-3-dev")
-e = sim_env_bianchi_model(id=random.randint(40,200))
+e = sim_env(id=random.randint(40,200))
 e.PROG_PATH = ns3_path
 e.PROG_NAME = "wifi-ai/env"
 e.DEBUG = True
 
 n_step = 1000
-model = bianchi_model(0,global_allocation=True)
+model = graphcut_hidden_model(0)
 model.DEBUG_STEP = 10
 model.DEBUG = True
 

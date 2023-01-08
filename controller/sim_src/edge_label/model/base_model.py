@@ -177,7 +177,8 @@ class base_model(learning_model):
             action_mat = to_dense_adj(edge_index=e_index,batch=None,edge_attr=label).view(n_node,n_node)
             action = to_numpy(action_mat)
 
-        action = self.add_noise(action)
+        if self.EXPLORATION:
+            action = self.add_noise(action)
         return action
     def add_noise(self,action):
         if p_true(self.EXPLORATION_PROB):

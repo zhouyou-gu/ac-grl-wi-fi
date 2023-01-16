@@ -81,8 +81,10 @@ class graphcut_hidden_model(infer_model):
 
             interference = (state_B_to_A >= 0.1)
 
-            label = interference.float()
-            label = (1-label)*(1.-p_contention)
+            # print(interference)
+            # label = interference.float()
+            # print(label)
+            label = (1.-p_contention)
 
             action_mat = to_dense_adj(edge_index=e_index,batch=None,edge_attr=label).view(n_node,n_node)
             action = to_numpy(action_mat)

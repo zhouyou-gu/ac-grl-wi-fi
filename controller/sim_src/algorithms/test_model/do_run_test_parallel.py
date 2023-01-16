@@ -8,9 +8,9 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 TEST_LIST = [
     # "test_base_model.py",
     # "test_itl_mmf.py",
-    # "test_itl_mmf_bidirection_interference.py",
-    "test_sac_gnn_model.py",
-    "test_reg_gnn_model_bin.py",
+    "test_itl_mmf_bidirection_interference.py",
+    # "test_sac_gnn_model.py",
+    # "test_reg_gnn_model_bin.py",
 ]
 
 CMD_LIST = []
@@ -23,8 +23,8 @@ for t in TEST_LIST:
 def run_cmd(cmd):
     os.system(cmd)
 
-for ii in range(5):
-    n_test = 3
+for ii in range(1):
+    n_test = 10
     p_list = []
     for cmd in CMD_LIST:
         for n in range(n_test):

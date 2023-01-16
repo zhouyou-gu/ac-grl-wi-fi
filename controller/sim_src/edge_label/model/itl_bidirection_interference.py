@@ -2,7 +2,7 @@ from sim_src.edge_label.model.base_model import *
 
 
 class itl_bidirection_interference(base_model):
-    def __init__(self, id, edge_dim=3, node_dim=4):
+    def __init__(self, id, edge_dim=2, node_dim=4):
         base_model.__init__(self,id,edge_dim,node_dim)
 
     def setup_infer(self):
@@ -44,8 +44,9 @@ class itl_bidirection_interference(base_model):
             interference = state_B_to_A
             interference_and_min_pl_and_p_contention = torch.hstack((interference,min_path_loss[e_index[0,:]],min_path_loss[e_index[1,:]],p_contention))
 
-            asso = torch.eq(min_path_loss_idx[e_index[0,:]], min_path_loss_idx[e_index[1,:]] ).float()
-            actor_input = torch.hstack((asso,interference_and_min_pl_and_p_contention))
+            # asso = torch.eq(min_path_loss_idx[e_index[0,:]], min_path_loss_idx[e_index[1,:]] ).float()
+            # actor_input = torch.hstack((asso,interference_and_min_pl_and_p_contention))
+            actor_input = interference_and_min_pl_and_p_contention
 
             label = self.actor_target.forward(actor_input)
 
@@ -85,14 +86,16 @@ class itl_bidirection_interference(base_model):
                 state_B_to_A = torch.gather(state_B,1,min_path_loss_idx[e_index[0,:]])
                 interference = state_B_to_A
                 interference_and_min_pl_and_p_contention = torch.hstack((interference,min_path_loss[e_index[0,:]],min_path_loss[e_index[1,:]],p_contention))
-                asso = torch.eq(min_path_loss_idx[e_index[0,:]], min_path_loss_idx[e_index[1,:]] ).float()
-                actor_input = torch.hstack((asso,interference_and_min_pl_and_p_contention))
+                # asso = torch.eq(min_path_loss_idx[e_index[0,:]], min_path_loss_idx[e_index[1,:]] ).float()
+                # actor_input = torch.hstack((asso,interference_and_min_pl_and_p_contention))
+                actor_input = interference_and_min_pl_and_p_contention
 
                 label = self.actor.forward(actor_input)
 
             label.requires_grad_()
 
-            s_a = torch.hstack((asso,interference,p_contention,label))
+            # s_a = torch.hstack((asso,interference,p_contention,label))
+            s_a = torch.hstack((interference,p_contention,label))
             self._printa("_train_actor states\n",to_numpy(state).T)
             self._printa("_train_actor minidA\n",to_numpy(min_path_loss_idx[e_index[0,:]]).T)
             self._printa("_train_actor minidB\n",to_numpy(min_path_loss_idx[e_index[1,:]]).T)
@@ -149,7 +152,8 @@ class itl_bidirection_interference(base_model):
                 interference = state_B_to_A
 
                 asso = torch.eq(min_path_loss_idx[e_index[0,:]], min_path_loss_idx[e_index[1,:]] ).float()
-                s_a = torch.hstack((asso,interference,p_contention,action))
+                # s_a = torch.hstack((asso,interference,p_contention,action))
+                s_a = torch.hstack((interference,p_contention,action))
                 self._printa("_train_critic sapair\n",to_numpy(s_a).T)
 
             q = self.critic.forward(x,e_index,s_a)

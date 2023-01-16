@@ -111,6 +111,6 @@ if __name__ == '__main__':
     # y = pl.get_loss_sta_sta()
     # print(y)
     # print(pl.convert_loss_sta_sta_binary(y))
-    l_max = pl._get_loss_between_locs((1000,1000),(500,500))
+    l_max = pl._get_loss_between_locs((1500,1500),(750,750))
     print(l_max)
     print(pl.get_loss_sta_ap())

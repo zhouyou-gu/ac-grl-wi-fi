@@ -10,7 +10,7 @@ INFER_PATH = "wifi-ai/controller/sim_src/algorithms/selected_nn/infer/infer.1999
 ACTOR_PATH = "wifi-ai/controller/sim_src/algorithms/selected_nn/training/actor_target.599.pt"
 CRITIC_PATH = "wifi-ai/controller/sim_src/algorithms/selected_nn/training/critic_target.599.pt"
 
-StatusObject.DISABLE_ALL_DEBUG = True
+StatusObject.DISABLE_ALL_DEBUG = False
 OUT_FOLDER = GET_LOG_PATH_FOR_SIM_SCRIPT(__file__)
 
 e = sim_env(id=random.randint(40,200))

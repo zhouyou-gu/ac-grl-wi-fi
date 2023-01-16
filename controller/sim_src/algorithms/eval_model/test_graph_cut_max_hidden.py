@@ -15,7 +15,7 @@ np.set_printoptions(linewidth=1000)
 torch.set_printoptions(threshold=5)
 torch.set_printoptions(linewidth=1000)
 
-StatusObject.DISABLE_ALL_DEBUG = True
+StatusObject.DISABLE_ALL_DEBUG = False
 
 
 OUT_FOLDER = GET_LOG_PATH_FOR_SIM_SCRIPT(__file__)

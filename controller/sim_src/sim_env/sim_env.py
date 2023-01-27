@@ -57,8 +57,11 @@ class sim_env(sim_env_to_controller_interface):
 
         self.init_env()
 
-    def init_env(self):
-        self.pl_model = path_loss(n_sta=self.set_n_sta(), shadowing_sigma=self.noise, seed=self.N_STEP)
+    def init_env(self,seed = None):
+        if seed:
+            self.pl_model = path_loss(n_sta=self.set_n_sta(), shadowing_sigma=self.noise, seed=seed)
+        else:
+            self.pl_model = path_loss(n_sta=self.set_n_sta(), shadowing_sigma=self.noise, seed=self.N_STEP)
 
         self.cfg = wifi_net_config()
 

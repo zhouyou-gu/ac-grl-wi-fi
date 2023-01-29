@@ -91,6 +91,8 @@ class online_actor_model(itl_bidirection_interference):
         loss = to_device(torch.zeros(1))
         for sample in batch:
             G = nx.complete_graph(sample['n_node'])
+            self._printa("_train_actor n_node\t",sample['n_node'])
+
             e_index = to_device(from_networkx(G).edge_index)
             with torch.no_grad():
                 reward = to_tensor(sample['reward'],requires_grad=False)
@@ -149,7 +151,24 @@ class online_actor_model(itl_bidirection_interference):
 
         return to_numpy(loss)
 
-
-
     def _train_critic(self,batch):
         pass
+
+    def _fair_q_r(self,q,r):
+        assert self.FAIRNESS_ALPHA >=0
+        self._printa("_fair_q qraw",q.transpose(0,1))
+        if self.FAIRNESS_ALPHA == 1:
+            q = q/r
+            q = torch.mean(q,dim=0,keepdim=True)
+            q = torch.exp(q)
+            self._printa("_fair_q fair pf",q.transpose(0,1))
+        elif self.FAIRNESS_ALPHA > self.MAX_FAIR_ALPHA:
+            min_r_idx = torch.argmin(r)
+            q = q[min_r_idx]
+            self._printa("_fair_q fair min",q)
+        else:
+            q = q*torch.pow(r+0.001,-self.FAIRNESS_ALPHA)/(1-self.FAIRNESS_ALPHA)
+            q = torch.mean(q,dim=0,keepdim=True)
+            q = torch.pow(q*(1-self.FAIRNESS_ALPHA),1/(1-self.FAIRNESS_ALPHA))
+            self._printa("_fair_q fair",self.FAIRNESS_ALPHA,q.transpose(0,1))
+        return q

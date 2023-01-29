@@ -21,7 +21,7 @@ StatusObject.DISABLE_ALL_DEBUG = True
 StatusObject.MOVING_AVERAGE_TIME_WINDOW = 20
 OUT_FOLDER = GET_LOG_PATH_FOR_SIM_SCRIPT(__file__)
 
-e = sim_env(id=random.randint(40,200),ns3_sim_time_s=2.,n_user=(40,40))
+e = sim_env(id=random.randint(40,200),ns3_sim_time_s=2.,n_user=(10,10))
 
 ns3_path = os.path.join(expanduser("~"),"wifi-ai/ns-3-dev")
 e.PROG_PATH = ns3_path

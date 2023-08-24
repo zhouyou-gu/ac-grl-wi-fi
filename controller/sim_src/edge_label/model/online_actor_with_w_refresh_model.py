@@ -1,8 +1,9 @@
 from sim_src.edge_label.model.itl_bidirection_interference import *
 
 
-class online_actor_model(itl_bidirection_interference):
+class online_actor_with_w_refresh_model(itl_bidirection_interference):
     N_INFER_STEP = 10
+    N_WEIGHT_REFRESH_STEP = 20
     def setup_weight(self,states):
         n_node = states.shape[0]
         with torch.no_grad():
@@ -35,6 +36,8 @@ class online_actor_model(itl_bidirection_interference):
         self.w_optim = optim.Adam([self.label], lr=0.001)
 
     def gen_action(self, state_np):
+        if self.N_STEP % self.N_WEIGHT_REFRESH_STEP == 0:
+            self.setup_weight(state_np)
         n_node = state_np.shape[0]
         with torch.no_grad():
             G = nx.complete_graph(n_node)

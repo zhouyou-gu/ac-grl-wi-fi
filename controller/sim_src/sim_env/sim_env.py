@@ -31,9 +31,10 @@ class sim_env(sim_env_to_controller_interface):
     TWT_START_TIME = 2000000
     TWT_ASLOT_TIME = 10000
 
-    def __init__(self, id=0, ns3_sim_time_s=5., app_packet_interval=20000, mac_packet_size=100, twt_log2_n_slot = 2, noise=0., n_user=(20,20)):
+    def __init__(self, id=0, ns3_sim_time_s=5., app_packet_interval=20000, mac_packet_size=100, twt_log2_n_slot = 2, noise=0., n_user=(20,20), mobility_in_meter_per_sec=0.):
         self.LOGGED_CLASS_NAME = "sim_env"
         self.id = id
+        self.seed = None
         self.ns3_sim_time_s = ns3_sim_time_s
         self.app_packet_interval = app_packet_interval
         assert mac_packet_size > UDP_IP_WIFI_HEADER_SIZE
@@ -53,11 +54,14 @@ class sim_env(sim_env_to_controller_interface):
         self.n_user_range = n_user
         self.n_user = 0
 
+        self.mobility_in_meter = mobility_in_meter_per_sec*self.ns3_sim_time_s
+
         self.n_user_rand_gen = np.random.default_rng(0)
 
         self.init_env()
 
     def init_env(self,seed = None):
+        self.seed = seed
         if seed:
             self.pl_model = path_loss(n_sta=self.set_n_sta(), shadowing_sigma=self.noise, seed=seed)
         else:
@@ -76,9 +80,14 @@ class sim_env(sim_env_to_controller_interface):
         self.cfg.loss_ap_ap = self.pl_model.get_loss_ap_ap()
         self.cfg.loss_sta_ap = self.pl_model.get_loss_sta_ap()
         self.cfg.loss_sta_sta = self.pl_model.get_loss_sta_sta()
-
     @counted
     def step(self, run_ns3 = True, seed = None):
+
+        self.pl_model.rand_user_mobility(self.mobility_in_meter)
+        self.cfg.loss_ap_ap = self.pl_model.get_loss_ap_ap()
+        self.cfg.loss_sta_ap = self.pl_model.get_loss_sta_ap()
+        self.cfg.loss_sta_sta = self.pl_model.get_loss_sta_sta()
+
         self.sample = {}
         state = self.pl_model.convert_loss_sta_ap_threshold(self.cfg.loss_sta_ap)
         # state = self.cfg.loss_sta_ap

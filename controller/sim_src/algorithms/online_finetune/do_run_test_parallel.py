@@ -6,12 +6,14 @@ from os.path import expanduser
 CTRL_PATH = os.path.join(expanduser("~"),"wifi-ai/controller")
 PATH = os.path.dirname(os.path.realpath(__file__))
 TEST_LIST = [
-    # "test_base_model.py",
-    # "test_itl_mmf.py",
-    "test_online_model_10_10.py",
-    "test_online_model_10_40.py",
-    # "test_sac_gnn_model.py",
-    # "test_reg_gnn_model_bin.py",
+    # "test_online_model_40_40_weight_freeze.py",
+    # "test_online_model_40_40.py",
+    # "test_online_model_20_20_weight_refresh.py",
+    # "test_online_model_20_20_weight_freeze.py",
+    # "test_online_model_20_20.py",
+    # "test_online_model_10_10_weight_refresh.py",
+    # "test_online_model_10_10_weight_freeze.py",
+    "test_online_model_10_10.py"
 ]
 
 CMD_LIST = []

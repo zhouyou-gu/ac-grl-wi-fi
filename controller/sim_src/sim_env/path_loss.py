@@ -8,7 +8,9 @@ class path_loss():
     HIDDEN_LOSS = 200.
     NOISE_FLOOR_1MHZ_DBM = -93.9763
     def __init__(self, n_ap = 4, n_sta = 10,range = 1000., fre_Hz = 1e9, txp_dbm = 0., min_rssi_dbm = -95, shadowing_sigma = 5., seed=0):
-        self.rand_gen = np.random.default_rng(seed)
+        self.rand_gen_loc = np.random.default_rng(seed)
+        self.rand_gen_fad = np.random.default_rng(seed)
+        self.rand_gen_mob = np.random.default_rng(seed)
 
         self.memory = None
         self.model = None
@@ -71,8 +73,8 @@ class path_loss():
         assert len(self.sta_locs) == self.n_sta
 
     def _get_random_loc(self):
-        x = self.rand_gen.uniform(-self.range, self.range)
-        y = self.rand_gen.uniform(-self.range, self.range)
+        x = self.rand_gen_loc.uniform(-self.range, self.range)
+        y = self.rand_gen_loc.uniform(-self.range, self.range)
         return (x,y)
 
     def _get_loss_between_locs(self, a, b, noise=False):
@@ -84,7 +86,7 @@ class path_loss():
         denominator = 16 * (self.PI ** 2) * ((dis + 1e-5) ** 2)
         loss = - 10. * math.log10(numerator / denominator)
         if noise:
-            loss += self.rand_gen.standard_normal() * self.shadowing_sigma
+            loss += self.rand_gen_fad.standard_normal() * self.shadowing_sigma
         loss = np.max((loss,0))
         return loss
 
@@ -99,7 +101,31 @@ class path_loss():
         ret[ret>0.] = 1.
         return ret
 
+    def rand_user_mobility(self, mobility_in_meter = 10.):
+        assert len(self.sta_locs) == self.n_sta
+        if mobility_in_meter == 0.:
+            return
+        for i in range(self.n_sta):
+            dd = self.rand_gen_mob.standard_normal(2)
+            dd = dd/np.linalg.norm(dd)* mobility_in_meter
+            x = self.sta_locs[i][0] + dd[0]
+            y = self.sta_locs[i][1] + dd[1]
+            if np.linalg.norm(np.array((x,y)),np.inf)<=self.range:
+                self.sta_locs[i] = (x,y)
+
+        assert len(self.sta_locs) == self.n_sta
+
+
 if __name__ == '__main__':
+    reg = np.random.default_rng(0)
+    dd = reg.standard_normal(2)
+    print(dd,np.linalg.norm(dd))
+    dd = dd/np.linalg.norm(dd)
+    print(dd[1],np.linalg.norm(dd))
+    temp_loc = (-110.,10.)
+    n = np.linalg.norm(np.array(temp_loc),np.inf)
+    print(n)
+    exit(0)
     pl = path_loss()
     # x = pl.get_loss_sta_ap()
     # # print(x)

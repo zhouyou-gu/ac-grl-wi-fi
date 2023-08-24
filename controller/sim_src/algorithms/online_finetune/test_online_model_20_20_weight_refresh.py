@@ -3,7 +3,7 @@ import random
 from os.path import expanduser
 import numpy as np
 import torch
-from sim_src.edge_label.model.online_actor_model import online_actor_model
+from sim_src.edge_label.model.online_actor_with_w_refresh_model import online_actor_with_w_refresh_model
 from sim_src.sim_env.sim_env import sim_env
 from sim_src.util import ParameterConfig, StatusObject, GET_LOG_PATH_FOR_SIM_SCRIPT
 
@@ -22,7 +22,7 @@ StatusObject.MOVING_AVERAGE_TIME_WINDOW = 20
 OUT_FOLDER = GET_LOG_PATH_FOR_SIM_SCRIPT(__file__)
 
 from sim_src.algorithms.online_finetune.shared_config import user_mobility
-e = sim_env(id=random.randint(40,200),ns3_sim_time_s=2.,n_user=(10,10),mobility_in_meter_per_sec=user_mobility)
+e = sim_env(id=random.randint(40,200),ns3_sim_time_s=2.,n_user=(20,20),mobility_in_meter_per_sec=user_mobility)
 OUT_FOLDER = OUT_FOLDER + '.'+ str(int(user_mobility))
 
 ns3_path = os.path.join(expanduser("~"),"wifi-ai/ns-3-dev")
@@ -32,7 +32,7 @@ e.DEBUG = True
 
 n_step = 200
 batch_size = 1
-model = online_actor_model(0)
+model = online_actor_with_w_refresh_model(0)
 
 
 path = os.path.join(expanduser("~"),INFER_PATH)

@@ -3,7 +3,7 @@ import random
 from os.path import expanduser
 import numpy as np
 import torch
-from sim_src.edge_label.model.online_actor_model import online_actor_model
+from sim_src.edge_label.model.online_actor_no_weight_update_model import online_actor_no_weight_update_model
 from sim_src.sim_env.sim_env import sim_env
 from sim_src.util import ParameterConfig, StatusObject, GET_LOG_PATH_FOR_SIM_SCRIPT
 
@@ -21,7 +21,9 @@ StatusObject.DISABLE_ALL_DEBUG = True
 StatusObject.MOVING_AVERAGE_TIME_WINDOW = 20
 OUT_FOLDER = GET_LOG_PATH_FOR_SIM_SCRIPT(__file__)
 
-e = sim_env(id=random.randint(40,200),ns3_sim_time_s=2.,n_user=(40,40))
+from sim_src.algorithms.online_finetune.shared_config import user_mobility
+e = sim_env(id=random.randint(40,200),ns3_sim_time_s=2.,n_user=(20,20),mobility_in_meter_per_sec=user_mobility)
+OUT_FOLDER = OUT_FOLDER + '.'+ str(int(user_mobility))
 
 ns3_path = os.path.join(expanduser("~"),"wifi-ai/ns-3-dev")
 e.PROG_PATH = ns3_path
@@ -30,7 +32,7 @@ e.DEBUG = True
 
 n_step = 200
 batch_size = 1
-model = online_actor_model(0)
+model = online_actor_no_weight_update_model(0)
 
 
 path = os.path.join(expanduser("~"),INFER_PATH)
@@ -47,7 +49,7 @@ model.DEBUG = True
 cfg = ParameterConfig()
 cfg['ALPHA'] = 10
 model.FAIRNESS_ALPHA = cfg['ALPHA']
-cfg.save(OUT_FOLDER,"NaN")
+cfg.save(OUT_FOLDER,str(int(user_mobility)))
 
 e.set_actor(model)
 e.init_env(np.random.randint(0,10000))

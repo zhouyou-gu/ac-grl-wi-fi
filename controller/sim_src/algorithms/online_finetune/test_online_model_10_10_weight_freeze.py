@@ -3,7 +3,7 @@ import random
 from os.path import expanduser
 import numpy as np
 import torch
-from sim_src.edge_label.model.online_actor_model import online_actor_model
+from sim_src.edge_label.model.online_actor_no_weight_update_model import online_actor_no_weight_update_model
 from sim_src.sim_env.sim_env import sim_env
 from sim_src.util import ParameterConfig, StatusObject, GET_LOG_PATH_FOR_SIM_SCRIPT
 
@@ -32,7 +32,7 @@ e.DEBUG = True
 
 n_step = 200
 batch_size = 1
-model = online_actor_model(0)
+model = online_actor_no_weight_update_model(0)
 
 
 path = os.path.join(expanduser("~"),INFER_PATH)

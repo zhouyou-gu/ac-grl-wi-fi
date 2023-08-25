@@ -3,7 +3,7 @@ from sim_src.edge_label.model.itl_bidirection_interference import *
 
 class online_actor_with_w_refresh_model(itl_bidirection_interference):
     N_INFER_STEP = 10
-    N_WEIGHT_REFRESH_STEP = 20
+    REFRESH_RATE = 0.1
     def setup_weight(self,states):
         n_node = states.shape[0]
         with torch.no_grad():
@@ -36,17 +36,46 @@ class online_actor_with_w_refresh_model(itl_bidirection_interference):
         self.w_optim = optim.Adam([self.label], lr=0.001)
 
     def gen_action(self, state_np):
-        if self.N_STEP % self.N_WEIGHT_REFRESH_STEP == 0:
-            self.setup_weight(state_np)
         n_node = state_np.shape[0]
         with torch.no_grad():
+
             G = nx.complete_graph(n_node)
             e_index = to_device(from_networkx(G).edge_index)
 
-            label = self.label.sigmoid()
+            label = self.label.sigmoid().clone()
 
-            action_mat = to_dense_adj(edge_index=e_index,batch=None,edge_attr=label).view(n_node,n_node)
-            action = to_numpy(action_mat)
+        with torch.no_grad():
+            e_index = to_device(from_networkx(G).edge_index)
+            state = to_tensor(state_np)
+            state = torch.hstack((state[e_index[0,:]],state[e_index[1,:]]))
+
+            result = self.infer_target.forward(state)
+            p_contention = result
+
+            state = to_tensor(state_np,requires_grad=False)
+            min_path_loss, min_path_loss_idx = torch.min(state,dim=1,keepdim=True)
+
+            # state_A = state[e_index[0,:]]
+            # state_A_to_B = torch.gather(state_A,1,min_path_loss_idx[e_index[1,:]])
+            state_B = state[e_index[1,:]]
+            state_B_to_A = torch.gather(state_B,1,min_path_loss_idx[e_index[0,:]])
+            interference = state_B_to_A
+            interference_and_min_pl_and_p_contention = torch.hstack((interference,min_path_loss[e_index[0,:]],min_path_loss[e_index[1,:]],p_contention))
+
+            # asso = torch.eq(min_path_loss_idx[e_index[0,:]], min_path_loss_idx[e_index[1,:]] ).float()
+            # actor_input = torch.hstack((asso,interference_and_min_pl_and_p_contention))
+            actor_input = interference_and_min_pl_and_p_contention
+
+            new_weights = self.actor_target.forward(actor_input).detach().clone()
+
+
+        label = (1- self.REFRESH_RATE) * label + self.REFRESH_RATE * new_weights
+        action_mat = to_dense_adj(edge_index=e_index,batch=None,edge_attr=label).view(n_node,n_node)
+        action = to_numpy(action_mat)
+
+        self.label = torch.log(label/(1-label)).clone()
+        self.label.requires_grad_()
+        self.w_optim = optim.Adam([self.label], lr=0.001)
 
         return action
 

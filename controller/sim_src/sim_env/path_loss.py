@@ -20,6 +20,7 @@ class path_loss():
         self.range = range
         self.ap_locs = []
         self.sta_locs = []
+        self.sta_dirs = []
 
         self.fre_Hz = fre_Hz
         self.lam = self.C / self.fre_Hz
@@ -30,6 +31,7 @@ class path_loss():
 
         self._config_ap_locs()
         self._config_sta_locs()
+        self._config_sta_dirs()
 
     def get_loss_ap_ap(self):
         ret = np.zeros((self.n_ap,self.n_ap))
@@ -101,20 +103,33 @@ class path_loss():
         ret[ret>0.] = 1.
         return ret
 
-    def rand_user_mobility(self, mobility_in_meter = 10.):
+    def _get_random_dir(self):
+        dd = self.rand_gen_mob.standard_normal(2)
+        dd = dd/np.linalg.norm(dd)
+        return (dd[0],dd[1])
+
+    def _config_sta_dirs(self):
+        for i in range(self.n_sta):
+            self.sta_dirs.append(self._get_random_dir())
+        assert len(self.sta_dirs) == self.n_sta
+
+    def rand_user_mobility(self, mobility_in_meter = 0.):
         assert len(self.sta_locs) == self.n_sta
+        assert len(self.sta_dirs) == self.n_sta
+
         if mobility_in_meter == 0.:
             return
         for i in range(self.n_sta):
-            dd = self.rand_gen_mob.standard_normal(2)
-            dd = dd/np.linalg.norm(dd)* mobility_in_meter
+            dd = np.array(self.sta_dirs[i]) * mobility_in_meter
             x = self.sta_locs[i][0] + dd[0]
             y = self.sta_locs[i][1] + dd[1]
             if np.linalg.norm(np.array((x,y)),np.inf)<=self.range:
                 self.sta_locs[i] = (x,y)
+            else:
+                self.sta_dirs[i] = self._get_random_dir()
 
         assert len(self.sta_locs) == self.n_sta
-
+        assert len(self.sta_dirs) == self.n_sta
 
 if __name__ == '__main__':
     reg = np.random.default_rng(0)

@@ -15,6 +15,8 @@ class gw_cut():
         self.obj = None
         self.constraints = None
 
+        self.rand_gen = np.random.default_rng(0)
+
     def get_m_solutions(self, num_trials=1):
         u, s, v = np.linalg.svd(self.X.value)
         U = u * np.sqrt(s)
@@ -22,7 +24,7 @@ class gw_cut():
         cut_results = []
         cost_results = []
         for i in range(num_trials):
-            r = np.random.randn(self.n_nodes)
+            r = self.rand_gen.standard_normal(self.n_nodes)
             r = r / np.linalg.norm(r)
             cut = np.sign(r @ U.T)
             cut_results.append(cut)
@@ -38,7 +40,7 @@ class gw_cut():
         cut_results = []
         cost_results = []
         for i in range(num_trials):
-            r = np.random.randn(self.n_nodes)
+            r = self.rand_gen.standard_normal(self.n_nodes)
             r = r / np.linalg.norm(r)
             cut = np.sign(r @ U.T)
             cut_results.append(cut)

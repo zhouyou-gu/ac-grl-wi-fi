@@ -52,7 +52,16 @@ model.FAIRNESS_ALPHA = cfg['ALPHA']
 cfg.save(OUT_FOLDER,str(int(user_mobility)))
 
 e.set_actor(model)
-e.init_env(np.random.randint(0,10000))
+
+seed = 0
+import sys
+if len(sys.argv) > 1:
+    print(sys.argv[0],int(sys.argv[1]))
+    seed = int(sys.argv[1])
+else:
+    seed = np.random.randint(0,10000)
+e.init_env(seed=seed)
+
 model.setup_weight(e.formate_np_state(e.pl_model.convert_loss_sta_ap_threshold(e.cfg.loss_sta_ap)))
 for i in range(n_step):
     batch = []

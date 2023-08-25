@@ -28,12 +28,15 @@ def run_cmd(cmd):
 
 
 for cmd in CMD_LIST:
-    for ii in range(11):
+    loop = 1
+    for ii in range(loop):
         n_test = 10
         p_list = []
         for n in range(n_test):
-            print(cmd)
-            p = Process(target=run_cmd, args=(cmd,))
+            seed = n + ii * loop
+            tmp_cmd = cmd + ' ' + str(n_test)
+            print(tmp_cmd)
+            p = Process(target=run_cmd, args=(tmp_cmd,))
             p_list.append(p)
 
         for p in p_list:

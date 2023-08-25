@@ -32,7 +32,7 @@ for cmd in CMD_LIST:
         p_list = []
         for n in range(n_test):
             seed = n + ii * loop
-            tmp_cmd = cmd + ' ' + str(n_test)
+            tmp_cmd = cmd + ' ' + str(seed)
             print(tmp_cmd)
             p = Process(target=run_cmd, args=(tmp_cmd,))
             p_list.append(p)

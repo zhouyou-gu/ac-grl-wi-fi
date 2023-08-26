@@ -26,9 +26,9 @@ def run_cmd(cmd):
 
 
 for cmd in CMD_LIST:
-    loop = 1
+    loop = 5
     for ii in range(loop):
-        n_test = 10
+        n_test = 8
         p_list = []
         for n in range(n_test):
             seed = n + ii * loop

@@ -56,10 +56,10 @@ e.set_actor(model)
 seed = 0
 import sys
 if len(sys.argv) > 1:
-    print(sys.argv[0],int(sys.argv[1]))
     seed = int(sys.argv[1])
 else:
     seed = np.random.randint(0,10000)
+print(OUT_FOLDER,'seed',seed)
 e.init_env(seed=seed)
 
 model.setup_weight(e.formate_np_state(e.pl_model.convert_loss_sta_ap_threshold(e.cfg.loss_sta_ap)))

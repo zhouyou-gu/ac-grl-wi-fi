@@ -39,10 +39,10 @@ for cmd in CMD_LIST:
 
         for p in p_list:
             p.start()
-            time.sleep(2)
+            time.sleep(10)
 
         for p in p_list:
             p.join()
-            time.sleep(2)
-    time.sleep(2)
+            time.sleep(10)
+    time.sleep(10)
 

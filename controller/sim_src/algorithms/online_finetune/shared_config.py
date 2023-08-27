@@ -1,1 +1,1 @@
-user_mobility = 2.
+user_mobility = 0.

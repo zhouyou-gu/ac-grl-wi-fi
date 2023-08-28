@@ -6,12 +6,11 @@ from os.path import expanduser
 CTRL_PATH = os.path.join(expanduser("~"),"wifi-ai/controller")
 PATH = os.path.dirname(os.path.realpath(__file__))
 TEST_LIST = [
-    # "test_bianchi_model_global.py",
-    # "test_graph_cut_max_hidden.py",
-    # "test_graph_cut_max_interference.py",
-    # "test_trained_nn.py",
-    # "test_twt_in_turn_global.py",
-    # "test_twt_rnd.py",
+    "test_trained_nn_k20_z8.py",
+    "test_trained_nn_k20_z16.py",
+    "test_trained_nn_k40_z4.py",
+    "test_trained_nn_k40_z8.py",
+    "test_trained_nn_k40_z16.py"    
     "test_trained_nn_k40_z32.py",
     "test_trained_nn_k40_z64.py",
 ]

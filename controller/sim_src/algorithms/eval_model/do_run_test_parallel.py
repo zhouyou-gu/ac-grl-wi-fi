@@ -12,9 +12,8 @@ TEST_LIST = [
     # "test_trained_nn.py",
     # "test_twt_in_turn_global.py",
     # "test_twt_rnd.py",
-    "test_trained_nn_k40_z16.py",
-    "test_trained_nn_k20_z2.py",
-    "test_trained_nn_k20_z16.py",
+    "test_trained_nn_k40_z32.py",
+    "test_trained_nn_k40_z64.py",
 ]
 
 CMD_LIST = []

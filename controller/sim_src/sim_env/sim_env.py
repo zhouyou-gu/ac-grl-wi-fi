@@ -28,7 +28,7 @@ class sim_env(sim_env_to_controller_interface):
     PROG_PATH = ''
     PROG_NAME = ''
 
-    TWT_START_TIME = 2000000
+    TWT_START_TIME = 1000000
     TWT_ASLOT_TIME = 10000
 
     def __init__(self, id=0, ns3_sim_time_s=5., app_packet_interval=20000, mac_packet_size=100, twt_log2_n_slot = 2, noise=0., n_user=(20,20), mobility_in_meter_per_sec=0.):
@@ -167,7 +167,7 @@ class sim_env(sim_env_to_controller_interface):
         self._add_np_log("sta_twt_slot_id", np.reshape(sta_twt_slot_id, (1, -1)))
 
         twt_cfg = {}
-        twt_cfg['twtstarttime'] = np.ones(self.pl_model.n_sta)*self.TWT_START_TIME
+        twt_cfg['twtstarttime'] = np.ones(self.pl_model.n_sta)*self.TWT_START_TIME * float(self.pl_model.n_sta)/10.
         twt_cfg['twtoffset'] = sta_twt_slot_id*self.TWT_ASLOT_TIME
         twt_cfg['twtduration'] = np.ones(self.pl_model.n_sta)*self.TWT_ASLOT_TIME
         twt_cfg['twtperiodicity'] = np.ones(self.pl_model.n_sta)*self.TWT_ASLOT_TIME * (2**self.twt_log2_n_slot)

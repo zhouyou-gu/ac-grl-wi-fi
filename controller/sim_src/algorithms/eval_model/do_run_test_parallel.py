@@ -6,14 +6,24 @@ from os.path import expanduser
 CTRL_PATH = os.path.join(expanduser("~"),"wifi-ai/controller")
 PATH = os.path.dirname(os.path.realpath(__file__))
 TEST_LIST = [
-    "test_trained_nn_k160_z32.py",
-    "test_trained_nn_k160_z16.py",
-    "test_trained_nn_k160_z8.py",
-    "test_trained_nn_k160_z4.py",
-    "test_trained_nn_k80_z32.py",
-    "test_trained_nn_k80_z16.py",
-    "test_trained_nn_k80_z8.py",
-    "test_trained_nn_k80_z4.py",
+    # "test_trained_nn_k160_z32.py",
+    # "test_trained_nn_k160_z16.py",
+    # "test_trained_nn_k160_z8.py",
+    # "test_trained_nn_k160_z4.py",
+    # "test_trained_nn_k80_z32.py",
+    # "test_trained_nn_k80_z16.py",
+    # "test_trained_nn_k80_z8.py",
+    # "test_trained_nn_k80_z4.py",
+    # "test_trained_nn_k10_z4.py",
+    # "test_trained_nn_k10_z2.py",
+    # "test_trained_nn_k10_z8.py",
+    # "test_trained_nn_k10_z16.py",
+    # "test_trained_nn_k80_z64.py",
+    # "test_trained_nn_k80_z128.py",
+    "test_trained_nn_k10_z32.py",
+    "test_trained_nn_k10_z64.py",
+    "test_trained_nn_k20_z64.py",
+    "test_trained_nn_k40_z128.py",
 ]
 
 CMD_LIST = []

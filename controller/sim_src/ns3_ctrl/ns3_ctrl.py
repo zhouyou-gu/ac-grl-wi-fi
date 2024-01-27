@@ -70,3 +70,20 @@ def build_ns3(path_to_ns3, debug=True):
     if build_required:
         print("(Re-)Build of ns-3 finished with status: ", p_status)
     os.chdir(cwd)
+
+def configure_ns3(path_to_ns3, debug=True):
+    cwd = os.getcwd()
+    os.chdir(path_to_ns3)
+
+    ns3_string = './ns3 configure'
+
+    output = subprocess.DEVNULL
+    if debug:
+        output = None
+
+    ns3_proc = subprocess.Popen(ns3_string, shell=True, stdout=subprocess.PIPE, stderr=None, universal_newlines=True)
+
+    for line in ns3_proc.stdout:
+        sys.stdout.write(line)
+
+    os.chdir(cwd)

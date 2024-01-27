@@ -1,5 +1,7 @@
 # AC-GRL-WI-FI
 
+Codes for paper, "Graph Representation Learning for Contention and Interference Management in Wireless Networks".
+
 Author: Zhouyou Gu (zhouyou.gu@sydney.edu.au); 
 
 Supervisors: Wibowo Hardjawana (wibowo.hardjawana@sydney.edu.au); Branka Vucetic (branka.vucetic@sydney.edu.au);
@@ -8,18 +10,17 @@ Collaborators: Kishore Chikkam and Pasquale Aliberti from Morse Micro, Sydney.
 
 *This project is developed at [Centre for IoT and Telecommunications](https://www.sydney.edu.au/engineering/our-research/internet-of-things/centre-for-iot-and-telecommunications.html) at The University of Sydney, 
 supported in part by The University of Sydney’s External Research Collaboration Seed Funding (Morse Micro), Deputy-Vice Chancellor (DVC) Research, in 2022. 
-The reference to our paper (currently in early access at IEEE/ACM Transactions on Networking):*
+The reference to our paper:*
 
 > ```
 >@ARTICLE{gu2024graph,
 > author={Gu, Zhouyou and Vucetic, Branka and Chikkam, Kishore and Aliberti, Pasquale and Hardjawana, Wibowo},
-> journal={IEEE/ACM Transactions on Networking}, 
+> journal={Early access in IEEE/ACM Transactions on Networking}, 
 > title={Graph Representation Learning for Contention and Interference Management in Wireless Networks}, 
 > year={2024},
 > volume={},
 > number={},
 > pages={1-16},
-> keywords={Interference;Throughput;Artificial neural networks;Wireless fidelity;Wireless networks;Optimization;Loss measurement;User grouping;graph constructions;actor-critic algorithms},
 > doi={10.1109/TNET.2024.3355935}}
 > ```
 
@@ -28,7 +29,8 @@ The reference to our paper (currently in early access at IEEE/ACM Transactions o
 The following is a table of packages used in this project. 
 Note that packages with different versions may not be compatible in this project. 
 Please install the right version based on instructions in their corresponding websites.
-(It is recommended to have a GPU for this project, but it can also run on CPU-only PCs.)
+
+(It is recommended to have a GPU for this project, but it can also run on CPU-only PCs. This project needs a modified version of NS-3 and ns3gym [here](https://github.com/zhouyou-gu/ns-3-dev-ac-grl-wi-fi.git), whose installation is explained below)
 
 | Packages             | Version            |
 |:---------------------|--------------------|
@@ -90,6 +92,7 @@ and then to [ns-3-dev/contrib/opengym](ns-3-dev/contrib/opengym), run
 ```bash
 sudo pip3 install ./model/ns3gym    
 ```
+
 ### Simulations
 Set the working directory as [controller](controller).
 

@@ -30,7 +30,7 @@ The following is a table of packages used in this project.
 Note that packages with different versions may not be compatible in this project. 
 Please install the right version based on instructions on their corresponding websites.
 
-*This project needs a modified version of NS-3 and ns3gym [here](https://github.com/zhouyou-gu/ns-3-dev-ac-grl-wi-fi.git). Please install their prerequisites according to their websites.
+*This project needs a modified version of NS-3 and ns3gym [here](https://github.com/zhouyou-gu/ns-3-dev-ac-grl-wi-fi.git). Please install their prerequisites according to their original websites.
 
 (It is recommended to have a GPU for this project, but it can also run on CPU-only PCs. 
 

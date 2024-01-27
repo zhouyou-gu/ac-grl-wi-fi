@@ -2,28 +2,19 @@ import os
 import time
 from multiprocessing import Process
 from os.path import expanduser
+from working_dir_path import *
 
-CTRL_PATH = os.path.join(expanduser("~"),"wifi-ai/controller")
+CTRL_PATH = get_controller_path()
 PATH = os.path.dirname(os.path.realpath(__file__))
 TEST_LIST = [
-    # "test_trained_nn_k160_z32.py",
-    # "test_trained_nn_k160_z16.py",
-    # "test_trained_nn_k160_z8.py",
-    # "test_trained_nn_k160_z4.py",
-    # "test_trained_nn_k80_z32.py",
-    # "test_trained_nn_k80_z16.py",
-    # "test_trained_nn_k80_z8.py",
-    # "test_trained_nn_k80_z4.py",
-    # "test_trained_nn_k10_z4.py",
-    # "test_trained_nn_k10_z2.py",
-    # "test_trained_nn_k10_z8.py",
-    # "test_trained_nn_k10_z16.py",
-    # "test_trained_nn_k80_z64.py",
-    # "test_trained_nn_k80_z128.py",
-    "test_trained_nn_k10_z32.py",
-    "test_trained_nn_k10_z64.py",
-    "test_trained_nn_k20_z64.py",
-    "test_trained_nn_k40_z128.py",
+    "test_bianchi_model_global.py",
+    "test_graph_cut_max_contention.py",
+    "test_graph_cut_max_hidden.py",
+    "test_graph_cut_max_interference.py",
+    "test_trained_nn.py",
+    "test_twt_in_turn_global.py",
+    "test_twt_per_ap_group.py",
+    "test_twt_rnd.py",
 ]
 
 CMD_LIST = []

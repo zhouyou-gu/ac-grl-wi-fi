@@ -2,15 +2,14 @@ import os
 import time
 from multiprocessing import Process
 from os.path import expanduser
+from working_dir_path import *
 
-CTRL_PATH = os.path.join(expanduser("~"),"wifi-ai/controller")
+CTRL_PATH = get_controller_path()
 PATH = os.path.dirname(os.path.realpath(__file__))
 TEST_LIST = [
-    # "test_base_model.py",
-    # "test_itl_mmf.py",
     "test_itl_mmf_bidirection_interference.py",
-    # "test_sac_gnn_model.py",
-    # "test_reg_gnn_model_bin.py",
+    "test_sac_gnn_model.py",
+    "test_reg_gnn_model_bin.py",
 ]
 
 CMD_LIST = []

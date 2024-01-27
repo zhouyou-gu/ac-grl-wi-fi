@@ -22,7 +22,9 @@ torch.set_printoptions(linewidth=1000)
 
 OUT_FOLDER = GET_LOG_PATH_FOR_SIM_SCRIPT(__file__)
 
-ns3_path = os.path.join(expanduser("~"),"wifi-ai/ns-3-dev")
+from working_dir_path import *
+ns3_path = get_ns3_path()
+
 e = sim_env(id=random.randint(40,200))
 e.PROG_PATH = ns3_path
 e.PROG_NAME = "wifi-ai/env"
@@ -34,13 +36,16 @@ model.DEBUG_STEP = 10
 model.DEBUG = True
 model.FAIRNESS_ALPHA = 100
 
-nn_path = os.path.join(expanduser("~"),"wifi-ai/controller/sim_src/algorithms/selected_nn/test_infer_then_label_model-2022-November-24-23-07-13-ail")
-infer_path = os.path.join(expanduser("~"),"wifi-ai/controller/sim_src/algorithms/selected_nn/infer/infer.999.pt")
+INFER_PATH = "sim_src/algorithms/selected_nn/infer/infer.1999.pt"
+ACTOR_PATH = "sim_src/algorithms/selected_nn/training/actor_target.599.pt"
+CRITIC_PATH = "sim_src/algorithms/selected_nn/training/critic_target.599.pt"
 
-model.load_actor(os.path.join(nn_path,"actor_target.499.pt"))
-model.load_infer(infer_path)
-model.load_critic(os.path.join(nn_path,"critic_target.499.pt"))
-
+path = os.path.join(get_controller_path(),INFER_PATH)
+model.load_infer(path)
+path = os.path.join(get_controller_path(),ACTOR_PATH)
+model.load_actor(path)
+path = os.path.join(get_controller_path(),CRITIC_PATH)
+model.load_critic(path)
 
 
 e.set_actor(model)

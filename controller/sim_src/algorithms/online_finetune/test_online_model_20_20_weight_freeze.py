@@ -7,9 +7,9 @@ from sim_src.edge_label.model.online_actor_no_weight_update_model import online_
 from sim_src.sim_env.sim_env import sim_env
 from sim_src.util import ParameterConfig, StatusObject, GET_LOG_PATH_FOR_SIM_SCRIPT
 
-INFER_PATH = "wifi-ai/controller/sim_src/algorithms/selected_nn/infer/infer.1999.pt"
-ACTOR_PATH = "wifi-ai/controller/sim_src/algorithms/selected_nn/training/actor_target.599.pt"
-CRITIC_PATH = "wifi-ai/controller/sim_src/algorithms/selected_nn/training/critic_target.599.pt"
+INFER_PATH = "sim_src/algorithms/selected_nn/infer/infer.1999.pt"
+ACTOR_PATH = "sim_src/algorithms/selected_nn/training/actor_target.599.pt"
+CRITIC_PATH = "sim_src/algorithms/selected_nn/training/critic_target.599.pt"
 
 np.set_printoptions(threshold=5)
 np.set_printoptions(linewidth=1000)
@@ -25,7 +25,9 @@ from sim_src.algorithms.online_finetune.shared_config import user_mobility
 e = sim_env(id=random.randint(40,200),ns3_sim_time_s=2.,n_user=(20,20),mobility_in_meter_per_sec=user_mobility)
 OUT_FOLDER = OUT_FOLDER + '.'+ str(int(user_mobility))
 
-ns3_path = os.path.join(expanduser("~"),"wifi-ai/ns-3-dev")
+from working_dir_path import *
+ns3_path = get_ns3_path()
+
 e.PROG_PATH = ns3_path
 e.PROG_NAME = "wifi-ai/env"
 e.DEBUG = True
@@ -34,12 +36,11 @@ n_step = 200
 batch_size = 1
 model = online_actor_no_weight_update_model(0)
 
-
-path = os.path.join(expanduser("~"),INFER_PATH)
+path = os.path.join(get_controller_path(),INFER_PATH)
 model.load_infer(path)
-path = os.path.join(expanduser("~"),ACTOR_PATH)
+path = os.path.join(get_controller_path(),ACTOR_PATH)
 model.load_actor(path)
-path = os.path.join(expanduser("~"),CRITIC_PATH)
+path = os.path.join(get_controller_path(),CRITIC_PATH)
 model.load_critic(path)
 
 model.EXPLORATION = False

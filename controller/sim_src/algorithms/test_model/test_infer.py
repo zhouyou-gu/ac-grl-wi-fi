@@ -23,7 +23,8 @@ class sim_env_tmp(sim_env):
         return np.zeros(self.pl_model.n_sta)
 
 
-ns3_path = os.path.join(expanduser("~"),"wifi-ai/ns-3-dev")
+from working_dir_path import *
+ns3_path = get_ns3_path()
 e = sim_env_tmp(id=random.randint(40,200),noise=0.)
 e.PROG_PATH = ns3_path
 e.PROG_NAME = "wifi-ai/env"

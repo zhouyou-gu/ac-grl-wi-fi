@@ -18,7 +18,8 @@ class tmp_sim_env(sim_env):
         return action
 
 e = tmp_sim_env(id=random.randint(40,60))
-ns3_path = os.path.join(expanduser("~"),"wifi-ai/ns-3-dev")
+from working_dir_path import *
+ns3_path = get_ns3_path()
 e.PROG_PATH = ns3_path
 e.PROG_NAME = "wifi-ai/env"
 e.DEBUG = True

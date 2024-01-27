@@ -6,7 +6,9 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
-CTRL_PATH = os.path.join(expanduser("~"),"wifi-ai/controller")
+from working_dir_path import *
+
+CTRL_PATH = get_controller_path()
 PATH = os.path.dirname(os.path.realpath(__file__))
 TEST_LIST = [
     "test_base_model.py",

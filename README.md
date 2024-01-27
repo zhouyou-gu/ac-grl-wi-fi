@@ -28,9 +28,11 @@ The reference to our paper:*
 ### Package Dependency
 The following is a table of packages used in this project. 
 Note that packages with different versions may not be compatible in this project. 
-Please install the right version based on instructions in their corresponding websites.
+Please install the right version based on instructions on their corresponding websites.
 
-(It is recommended to have a GPU for this project, but it can also run on CPU-only PCs. This project needs a modified version of NS-3 and ns3gym [here](https://github.com/zhouyou-gu/ns-3-dev-ac-grl-wi-fi.git), whose installation is explained below)
+*This project needs a modified version of NS-3 and ns3gym [here](https://github.com/zhouyou-gu/ns-3-dev-ac-grl-wi-fi.git). Please install their prerequisites according to their websites.
+
+(It is recommended to have a GPU for this project, but it can also run on CPU-only PCs. 
 
 | Packages             | Version            |
 |:---------------------|--------------------|
@@ -46,12 +48,12 @@ Please install the right version based on instructions in their corresponding we
 
 ### Installation
 
-In your home directory, git clone this repository as (if you clone the repository in different place, you may need to change [the path configuration](controller/working_dir_path.py) for this project in )
+In your home directory, git clone this repository as (if you clone the repository in a different place, you may need to change [the path configuration](controller/working_dir_path.py) in this project)
 ```bash
 git clone https://github.com/zhouyou-gu/ac-grl-wi-fi.git
 ```
 
-Change directory the cloned ac-grl-wi-fi folder. 
+Change the working directory to the cloned ac-grl-wi-fi folder. 
 ```bash
 cd ac-grl-wi-fi
 ```
@@ -86,7 +88,7 @@ PYTHONPATH=./ python3 sim_script/configure_ns3.py
 PYTHONPATH=./ python3 sim_script/build_ns3.py
 ```
 
-To install ns3gym in python, change directory back to repository root 
+To install ns3gym in Python, change the directory back to the repository root 
 and then to [ns-3-dev/contrib/opengym](ns-3-dev/contrib/opengym), run
 
 ```bash

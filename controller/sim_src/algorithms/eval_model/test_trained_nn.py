@@ -13,6 +13,11 @@ CRITIC_PATH = "sim_src/algorithms/selected_nn/training/critic_target.599.pt"
 StatusObject.DISABLE_ALL_DEBUG = False
 OUT_FOLDER = GET_LOG_PATH_FOR_SIM_SCRIPT(__file__)
 
+# the number of users and the number of groups can be varied by setting different twt_log2_n_slot and n_user in sim_env
+# (default is 4 groups and 20 users, see sim_env)
+# for example, to set 8 groups and 40 users, do
+# e = sim_env(id=random.randint(40,200),twt_log2_n_slot=3,n_user=(40,40))
+
 e = sim_env(id=random.randint(40,200))
 
 from working_dir_path import *

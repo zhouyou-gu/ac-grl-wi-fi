@@ -40,7 +40,7 @@ Please install the right version based on instructions in their corresponding we
 | nvidia-driver (CUDA) | 520.61.05 (11.8)   |
 
 
-
+![code](ac-grl-wi-fi-code-structure.png)
 
 ### Installation
 
@@ -84,9 +84,14 @@ PYTHONPATH=./ python3 sim_script/configure_ns3.py
 PYTHONPATH=./ python3 sim_script/build_ns3.py
 ```
 
+To install ns3gym in python, change directory back to repository root 
+and then to [ns-3-dev/contrib/opengym](ns-3-dev/contrib/opengym), run
 
+```bash
+sudo pip3 install ./model/ns3gym    
+```
 ### Simulations
-Keep the working directory as [controller](controller).
+Set the working directory as [controller](controller).
 
 Run the pre-training of the inference NN in AC-GRL as
 ```bash

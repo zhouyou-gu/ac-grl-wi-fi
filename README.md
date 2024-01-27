@@ -60,7 +60,7 @@ Run the following to fetch the [NS-3 codes](https://github.com/zhouyou-gu/ns-3-d
 git submodule update --init --recursive
 ```
 
-Change the working directory to [./controller](controller)
+Change the working directory to [controller](controller)
 
 ```bash
 cd controller

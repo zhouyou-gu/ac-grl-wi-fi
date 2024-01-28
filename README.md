@@ -32,7 +32,7 @@ Please install the right version based on instructions on their corresponding we
 
 *This project needs a modified version of NS-3 and ns3gym [here](https://github.com/zhouyou-gu/ns-3-dev-ac-grl-wi-fi.git). Please install their prerequisites according to their original websites.
 
-(It is recommended to have a GPU for this project, but it can also run on CPU-only PCs. 
+(It is recommended to have a GPU for this project, but it can also run on CPU-only PCs.)
 
 | Packages             | Version            |
 |:---------------------|--------------------|

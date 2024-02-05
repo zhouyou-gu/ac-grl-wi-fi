@@ -43,7 +43,7 @@ Please install the right version based on instructions on their corresponding we
 | PyTorch Geometric    | 2.1.0              |
 | nvidia-driver (CUDA) | 520.61.05 (11.8)   |
 
-### Overview of the code structure
+### Overall Code Structure
 
 ![code](ac-grl-wi-fi-code-structure.png)
 

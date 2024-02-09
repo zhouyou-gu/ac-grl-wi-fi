@@ -1,6 +1,6 @@
 # AC-GRL-WI-FI
 
-Codes for paper, "Graph Representation Learning for Contention and Interference Management in Wireless Networks".
+Codes for paper, "Graph Representation Learning for Contention and Interference Management in Wireless Networks." The manuscript is available at [IEEE Xplore](https://ieeexplore.ieee.org/abstract/document/10413982) and [arXiv](https://arxiv.org/abs/2402.00879).
 
 Author: Zhouyou Gu (zhouyou.gu@sydney.edu.au); 
 

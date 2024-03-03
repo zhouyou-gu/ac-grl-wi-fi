@@ -90,7 +90,7 @@ PYTHONPATH=./ python3 sim_script/build_ns3.py
 ```
 
 To install ns3gym in Python, change the directory back to the repository root 
-and then to [ns-3-dev/contrib/opengym](ns-3-dev/contrib/opengym), run
+and then to [ns-3-dev/contrib/opengym](https://github.com/zhouyou-gu/ns-3-dev-ac-grl-wi-fi/tree/master/contrib/opengym), run
 
 ```bash
 sudo pip3 install ./model/ns3gym    

@@ -39,6 +39,7 @@ Please install the right version based on instructions on their corresponding we
 | Ubuntu               | 20.04.1            |
 | Python               | 3.8.10             |
 | CMAKE                | 3.16.3             |
+| CVXPY (SCS backend)  | 1.14.1             |
 | PyTorch              | 1.12.0+cu116       |
 | PyTorch Geometric    | 2.1.0              |
 | nvidia-driver (CUDA) | 520.61.05 (11.8)   |

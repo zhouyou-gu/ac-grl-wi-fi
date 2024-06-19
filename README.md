@@ -14,14 +14,14 @@ The reference to our paper:*
 
 > ```
 >@ARTICLE{gu2024graph,
-> author={Gu, Zhouyou and Vucetic, Branka and Chikkam, Kishore and Aliberti, Pasquale and Hardjawana, Wibowo},
-> journal={Early access in IEEE/ACM Transactions on Networking}, 
-> title={Graph Representation Learning for Contention and Interference Management in Wireless Networks}, 
-> year={2024},
-> volume={},
-> number={},
-> pages={1-16},
-> doi={10.1109/TNET.2024.3355935}}
+>author={Gu, Zhouyou and Vucetic, Branka and Chikkam, Kishore and Aliberti, Pasquale and Hardjawana, Wibowo},
+>journal={IEEE/ACM Transactions on Networking}, 
+>title={Graph Representation Learning for Contention and Interference Management in Wireless Networks}, 
+>year={2024},
+>volume={32},
+>number={3},
+>pages={2479-2494},
+>doi={10.1109/TNET.2024.3355935}}
 > ```
 
 
